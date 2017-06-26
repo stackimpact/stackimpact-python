@@ -77,7 +77,7 @@ Other initialization options:
 
 #### Analyzing performance data in the Dashboard
 
-Once your application is restarted, you can start observing regular and anomaly-triggered CPU, memory, I/O, and other hot spot profiles, execution bottlenecks as well as process metrics in the [Dashboard](https://dashboard.stackimpact.com/).
+Once your application is restarted, you can start observing continuous CPU, memory, I/O, and other hot spot profiles, execution bottlenecks as well as process metrics in the [Dashboard](https://dashboard.stackimpact.com/).
 
 
 #### Troubleshooting
