@@ -27,7 +27,7 @@ See full [documentation](https://stackimpact.com/docs/) for reference.
 ## Requirements
 
 * Linux, OS X or Windows. Python version 2.7, 3.4 or higher.
-* Memorly allocation profiler and some GC metrics are only available for Python 3.
+* Memory allocation profiler and some GC metrics are only available for Python 3.
 * CPU and Time profilers only supports Linux and OS X.
 * Time (blocking call) profiler supports threads and gevent.
 
@@ -63,7 +63,7 @@ Start the agent in the main thread by specifying the agent key and application n
 ```python
 agent = stackimpact.start(
     agent_key = 'agent key here',
-    app_name = 'MyPythonApp',
+    app_name = 'MyPythonApp')
 ```
 
 Other initialization options:
