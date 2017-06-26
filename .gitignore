@@ -1,0 +1,15 @@
+.DS_Store
+._
+._.*
+conf
+*.pyc
+build
+.bin
+log/*
+logs/*
+!.gitkeep
+tmp
+.tmp
+dist
+stackimpact.egg-info
+__pycache__
