@@ -43,7 +43,7 @@ Sign up for a free account at [stackimpact.com](https://stackimpact.com/).
 
 #### Installing the agent
 
-Install the Go agent by running
+Install the Python agent by running
 
 ```
 pip install stackimpact
