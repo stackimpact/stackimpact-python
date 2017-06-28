@@ -53,8 +53,6 @@ class ErrorReporter:
 
         unpatch(sys, 'exc_info')
         
-        self.reset_profile()
-
         if self.process_timer:
             self.process_timer.cancel()
             self.process_timer = None

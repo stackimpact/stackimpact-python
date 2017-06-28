@@ -9,8 +9,9 @@ import threading
 import os
 import signal
 import atexit
+import platform
 
-from .runtime import min_version, runtime_info
+from .runtime import min_version, runtime_info, register_signal
 from .utils import timestamp, generate_uuid
 from .config import Config
 from .config_loader import ConfigLoader
@@ -25,7 +26,7 @@ from .reporters.error_reporter import ErrorReporter
 
 class Agent:
 
-    AGENT_VERSION = "1.0.0"
+    AGENT_VERSION = "1.0.1"
     SAAS_DASHBOARD_ADDRESS = "https://agent-api.stackimpact.com"
 
     def __init__(self, **kwargs):
@@ -61,6 +62,9 @@ class Agent:
     def start(self, **kwargs):
         if not min_version(2, 7) and not min_version(3, 4):
             raise Exception('Supported Python versions 2.6 or highter and 3.4 or higher')
+
+        if platform.python_implementation() != 'CPython':
+            raise Exception('Supported Python interpreter is CPython')
 
         if self.agent_destroyed:
             self.log('Destroyed agent cannot be started')
@@ -106,10 +110,12 @@ class Agent:
                 except Exception:
                     self.exception()
 
-        signal.signal(signal.SIGUSR2, _signal_handler)
+                return True
+
+        register_signal(signal.SIGUSR2, _signal_handler)
 
         # destroy agent on exit
-        def _exit():
+        def _exit_handler(*arg):
             if not self.agent_started or self.agent_destroyed:
                 return
 
@@ -120,7 +126,12 @@ class Agent:
                 self.exception()
 
 
-        atexit.register(_exit)
+        atexit.register(_exit_handler)
+
+        register_signal(signal.SIGQUIT, _exit_handler)
+        register_signal(signal.SIGINT, _exit_handler)
+        register_signal(signal.SIGTERM, _exit_handler)
+        register_signal(signal.SIGHUP, _exit_handler)
 
         self.agent_started = True
         self.log('Agent started')

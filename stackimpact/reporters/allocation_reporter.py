@@ -63,6 +63,11 @@ class AllocationReporter:
 
 
     def record(self, max_duration):
+        if self.agent.config.is_profiling_disabled():
+            return
+
+        self.agent.log('Activating memory allocation profiler.')
+
         def start():
             tracemalloc.start(self.MAX_TRACEBACK_SIZE)
         self.agent.run_in_main_thread(start)
@@ -75,6 +80,8 @@ class AllocationReporter:
 
             if tracemalloc.get_tracemalloc_memory() > self.MAX_MEMORY_OVERHEAD:
                 break
+
+        self.agent.log('Deactivating memory allocation profiler.')
 
         if tracemalloc.is_tracing():
             snapshot = tracemalloc.take_snapshot()

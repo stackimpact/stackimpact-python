@@ -103,9 +103,13 @@ class BlockReporter:
         if self.agent.config.is_profiling_disabled():
             return
 
+        self.agent.log('Activating blocking call profiler.')
+
         signal.setitimer(signal.ITIMER_REAL, self.SAMPLING_RATE, self.SAMPLING_RATE)
         time.sleep(duration)
         signal.setitimer(signal.ITIMER_REAL, 0)
+
+        self.agent.log('Deactivating blocking call profiler.')
 
         self.profile_duration += duration
 
@@ -152,7 +156,6 @@ class BlockReporter:
         include = False
         for frame in stack:
             if self.agent.frame_selector.is_http_frame(frame.filename):
-                frame._skip = True
                 include = True
 
         if include:
@@ -160,9 +163,8 @@ class BlockReporter:
             current_node.increment(sample_time, 1)
 
             for frame in reversed(stack):
-                if not frame._skip:
-                    current_node = current_node.find_or_add_child(str(frame))
-                    current_node.increment(sample_time, 1)
+                current_node = current_node.find_or_add_child(str(frame))
+                current_node.increment(sample_time, 1)
 
 
     def report(self):

@@ -86,9 +86,13 @@ class CPUReporter:
         if self.agent.config.is_profiling_disabled():
             return
 
+        self.agent.log('Activating CPU profiler.')
+
         signal.setitimer(signal.ITIMER_PROF, self.SAMPLING_RATE, self.SAMPLING_RATE)
         time.sleep(duration)
         signal.setitimer(signal.ITIMER_PROF, 0)
+
+        self.agent.log('Deactivating CPU profiler.')
 
         self.profile_duration += duration
 

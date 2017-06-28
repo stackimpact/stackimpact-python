@@ -25,8 +25,6 @@ class MessageQueue:
 
 
     def destroy(self):
-        self.queue = []
-
         if self.flush_timer:
             self.flush_timer.cancel()
             self.flush_timer = None

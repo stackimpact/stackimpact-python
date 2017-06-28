@@ -4,6 +4,7 @@ import sys
 import resource
 import re
 import os
+import signal
 from functools import wraps
 
 
@@ -117,3 +118,17 @@ def unpatch(obj, func_name):
         return
 
     setattr(obj, func_name, getattr(wrapper, '__stackimpact_orig__'))
+
+
+def register_signal(signal_number, handler_func):
+    prev_handler = signal.SIG_IGN
+    def _handler(signum, frame):
+        skip_prev = handler_func(signum, frame)
+
+        if not skip_prev and prev_handler not in [signal.SIG_IGN, signal.SIG_DFL] and callable(prev_handler):
+            prev_handler(signum, frame)
+
+    prev_handler = signal.signal(signal_number, signal.SIG_IGN)
+    if prev_handler != signal.SIG_IGN:
+        signal.signal(signal_number, _handler)
+

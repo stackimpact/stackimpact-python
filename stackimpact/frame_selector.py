@@ -64,11 +64,7 @@ class FrameSelector:
 
 
     def destroy(self):
-        self.agent_frame_cache = None
-        self.system_frame_cache = None
-        self.http_frame_cache = None
-
-        self.http_frame_regexp = None
+        pass
 
 
     def is_agent_frame(self, filename):
