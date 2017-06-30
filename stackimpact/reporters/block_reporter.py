@@ -38,7 +38,7 @@ class BlockReporter:
             return
 
         if not runtime_info.OS_LINUX and not runtime_info.OS_DARWIN:
-            self.agent.log('Time profiler is only supported on Linux and OS X.')
+            self.agent.log('Block profiler is only supported on Linux and OS X.')
             return
 
         sample_time = self.SAMPLING_RATE * 1000
@@ -56,20 +56,8 @@ class BlockReporter:
 
             with self.profile_lock:
                 try:
-                    if self.block_profile:
-                        start = time.clock()
-
-                        current_frames = sys._current_frames()
-                        for thread_id, thread_frame in current_frames.items():
-                            if thread_id == main_thread_id:
-                                thread_frame = signal_frame
-
-                            stack = self.recover_stack(thread_frame)
-                            if stack:
-                                self.update_block_profile(stack, sample_time)
-                                self.update_http_profile(stack, sample_time)
-
-                        self.block_profile._overhead += (time.clock() - start)
+                    self.process_sample(signal_frame, sample_time, main_thread_id)
+                    signal_frame = None
                 except Exception:
                     self.agent.exception()
 
@@ -86,7 +74,8 @@ class BlockReporter:
         if self.agent.get_option('block_profiler_disabled'):
             return
 
-        if self.prev_signal_handler:
+        if self.prev_signal_handler != None:
+            signal.setitimer(signal.ITIMER_REAL, 0)
             signal.signal(signal.SIGALRM, self.prev_signal_handler)
 
         if self.profiler_scheduler:
@@ -103,17 +92,39 @@ class BlockReporter:
         if self.agent.config.is_profiling_disabled():
             return
 
-        self.agent.log('Activating blocking call profiler.')
+        self.agent.log('Activating block profiler.')
 
         signal.setitimer(signal.ITIMER_REAL, self.SAMPLING_RATE, self.SAMPLING_RATE)
         time.sleep(duration)
         signal.setitimer(signal.ITIMER_REAL, 0)
 
-        self.agent.log('Deactivating blocking call profiler.')
+        self.agent.log('Deactivating block profiler.')
 
         self.profile_duration += duration
 
-        self.agent.log('Time profiler CPU overhead per activity second: {0} seconds'.format(self.block_profile._overhead / self.profile_duration))
+        self.agent.log('Block profiler CPU overhead per activity second: {0} seconds'.format(self.block_profile._overhead / self.profile_duration))
+
+
+    def process_sample(self, signal_frame, sample_time, main_thread_id):
+        if self.block_profile:
+            start = time.clock()
+
+            current_frames = sys._current_frames()
+            for thread_id, thread_frame in current_frames.items():
+                if thread_id == main_thread_id:
+                    thread_frame = signal_frame
+
+                stack = self.recover_stack(thread_frame)
+                if stack:
+                    self.update_block_profile(stack, sample_time)
+                    self.update_http_profile(stack, sample_time)
+
+                thread_id, thread_frame, stack = None, None, None
+
+            current_frames = None
+
+            self.block_profile._overhead += (time.clock() - start)
+
 
 
     def recover_stack(self, thread_frame):

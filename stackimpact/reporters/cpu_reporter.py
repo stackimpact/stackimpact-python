@@ -45,13 +45,8 @@ class CPUReporter:
 
             with self.profile_lock:
                 try:
-                    if self.profile:
-                        start = time.clock()
-                        if signal_frame:
-                            stack = self.recover_stack(signal_frame)
-                            if stack:
-                                self.update_profile(self.profile, stack)
-                        self.profile._overhead += (time.clock() - start)
+                    self.process_sample(signal_frame)
+                    signal_frame = None
                 except Exception:
                     self.agent.exception()
 
@@ -69,7 +64,8 @@ class CPUReporter:
         if self.agent.get_option('cpu_profiler_disabled'):
             return
 
-        if self.prev_signal_handler:
+        if self.prev_signal_handler != None:
+            signal.setitimer(signal.ITIMER_PROF, 0)
             signal.signal(signal.SIGPROF, self.prev_signal_handler)
 
         if self.profiler_scheduler:
@@ -98,6 +94,19 @@ class CPUReporter:
 
         self.agent.log('CPU profiler CPU overhead per activity second: {0} seconds'.format(self.profile._overhead / self.profile_duration))
 
+
+    def process_sample(self, signal_frame):
+        if self.profile:
+            start = time.clock()
+            if signal_frame:
+                stack = self.recover_stack(signal_frame)
+                if stack:
+                    self.update_profile(self.profile, stack)
+
+                stack = None
+
+            self.profile._overhead += (time.clock() - start)
+            
 
     def recover_stack(self, signal_frame):
         stack = []
