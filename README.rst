@@ -37,14 +37,17 @@ Documentation
 See full `documentation <https://stackimpact.com/docs/>`__ for
 reference.
 
-Requirements
-------------
+Supported environment
+---------------------
 
 -  Linux, OS X or Windows. Python version 2.7, 3.4 or higher.
--  Memorly allocation profiler and some GC metrics are only available
-   for Python 3.
--  CPU and Time profilers only supports Linux and OS X.
+-  Memory allocation profiler and some GC metrics are only available for
+   Python 3.
+-  Profilers only support Linux and OS X.
 -  Time (blocking call) profiler supports threads and gevent.
+-  On unix systems the profilers use the following signals: SIGPROF,
+   SIGALRM, SIGUSR2. Only SIGUSR2 is handled transparently, i.e. it
+   should not conflict with previousely registered handlers.
 
 Getting started
 ---------------
@@ -58,7 +61,7 @@ Sign up for a free account at
 Installing the agent
 ^^^^^^^^^^^^^^^^^^^^
 
-Install the Go agent by running
+Install the Python agent by running
 
 ::
 
@@ -81,7 +84,10 @@ Configuration section.
 
     agent = stackimpact.start(
         agent_key = 'agent key here',
-        app_name = 'MyPythonApp',
+        app_name = 'MyPythonApp')
+
+Add the agent initialization to the worker code, e.g. wsgi.py, if
+applicable.
 
 Other initialization options:
 
@@ -92,13 +98,19 @@ Other initialization options:
 -  ``host_name`` (Optional) By default, host name will be the OS
    hostname.
 -  ``debug`` (Optional) Enables debug logging.
+-  ``cpu_profiler_disabled``, ``allocation_profiler_disabled``,
+   ``block_profiler_disabled``, ``error_profiler_disabled`` (Optional)
+   Disables respective profiler when ``True``.
+-  ``include_agent_frames``, ``include_system_frames`` (Optional) Set to
+   ``True`` to not exclude agent and/or system stack frames from
+   profiles.
 
 Analyzing performance data in the Dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Once your application is restarted, you can start observing regular and
-anomaly-triggered CPU, memory, I/O, and other hot spot profiles,
-execution bottlenecks as well as process metrics in the
+Once your application is restarted, you can start observing continuous
+CPU, memory, I/O, and other hot spot profiles, execution bottlenecks as
+well as process metrics in the
 `Dashboard <https://dashboard.stackimpact.com/>`__.
 
 Troubleshooting

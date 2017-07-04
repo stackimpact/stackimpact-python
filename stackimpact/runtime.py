@@ -6,7 +6,10 @@ import re
 import os
 import signal
 from functools import wraps
-
+try:
+    import resource
+except ImportError:
+    pass
 
 
 class runtime_info:

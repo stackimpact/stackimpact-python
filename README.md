@@ -28,8 +28,9 @@ See full [documentation](https://stackimpact.com/docs/) for reference.
 
 * Linux, OS X or Windows. Python version 2.7, 3.4 or higher.
 * Memory allocation profiler and some GC metrics are only available for Python 3.
-* CPU and Time profilers only support Linux and OS X.
+* Profilers only support Linux and OS X.
 * Time (blocking call) profiler supports threads and gevent.
+* On unix systems the profilers use the following signals: SIGPROF, SIGALRM, SIGUSR2. Only SIGUSR2 is handled transparently, i.e. it should not conflict with previousely registered handlers.
 
 
 ## Getting started
@@ -73,6 +74,8 @@ Other initialization options:
 * `app_environment` (Optional) Used to differentiate applications in different environments.
 * `host_name` (Optional) By default, host name will be the OS hostname.
 * `debug` (Optional) Enables debug logging.
+* `cpu_profiler_disabled`, `allocation_profiler_disabled`, `block_profiler_disabled`, `error_profiler_disabled` (Optional) Disables respective profiler when `True`.
+* `include_agent_frames`, `include_system_frames` (Optional) Set to `True` to not exclude agent and/or system stack frames from profiles.
 
 
 

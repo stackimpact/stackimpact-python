@@ -110,7 +110,8 @@ class BlockReporter:
             start = time.clock()
 
             current_frames = sys._current_frames()
-            for thread_id, thread_frame in current_frames.items():
+            items = current_frames.items()
+            for thread_id, thread_frame in items:
                 if thread_id == main_thread_id:
                     thread_frame = signal_frame
 
@@ -121,6 +122,7 @@ class BlockReporter:
 
                 thread_id, thread_frame, stack = None, None, None
 
+            items = None
             current_frames = None
 
             self.block_profile._overhead += (time.clock() - start)
