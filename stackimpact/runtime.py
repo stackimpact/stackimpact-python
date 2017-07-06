@@ -1,7 +1,6 @@
 
 import time
 import sys
-import resource
 import re
 import os
 import signal
