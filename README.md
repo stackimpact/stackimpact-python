@@ -68,8 +68,10 @@ agent = stackimpact.start(
 
 Add the agent initialization to the worker code, e.g. wsgi.py, if applicable.
 
-Other initialization options:
+All initialization options:
 
+* `agent_key` (Required) The access key for communication with the StackImpact servers.
+* `app_name` (Required) A name to identify and group application data. Typically, a single codebase corresponds to one application.
 * `app_version` (Optional) Sets application version, which can be used to associate profiling information with the source code release.
 * `app_environment` (Optional) Used to differentiate applications in different environments.
 * `host_name` (Optional) By default, host name will be the OS hostname.

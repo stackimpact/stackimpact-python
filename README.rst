@@ -55,8 +55,8 @@ Getting started
 Create StackImpact account
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Sign up for a free account at
-`stackimpact.com <https://stackimpact.com/>`__.
+`Sign up <https://dashboard.stackimpact.com/#/signup>`__ for a free
+account (also with GitHub login).
 
 Installing the agent
 ^^^^^^^^^^^^^^^^^^^^
@@ -89,8 +89,12 @@ Configuration section.
 Add the agent initialization to the worker code, e.g. wsgi.py, if
 applicable.
 
-Other initialization options:
+All initialization options:
 
+-  ``agent_key`` (Required) The access key for communication with
+   StackImpact servers.
+-  ``app_name`` (Required) A name to identify and group application
+   data. Typically, single codebase corresponds to one application.
 -  ``app_version`` (Optional) Sets application version, which can be
    used to associate profiling information with the source code release.
 -  ``app_environment`` (Optional) Used to differentiate applications in
