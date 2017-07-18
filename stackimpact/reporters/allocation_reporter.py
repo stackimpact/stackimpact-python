@@ -130,6 +130,7 @@ class AllocationReporter:
             return
 
         self.profile.normalize(self.profile_duration)
+        self.profile.filter(2, 1000, float("inf"))
 
         metric = Metric(self.agent, Metric.TYPE_PROFILE, Metric.CATEGORY_MEMORY_PROFILE, Metric.NAME_UNCOLLECTED_ALLOCATIONS, Metric.UNIT_BYTE)
         measurement = metric.create_measurement(Metric.TRIGGER_TIMER, self.profile.measurement, 1, self.profile)

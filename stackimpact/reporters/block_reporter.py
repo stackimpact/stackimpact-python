@@ -189,6 +189,7 @@ class BlockReporter:
 
         with self.profile_lock:
             self.block_profile.normalize(self.profile_duration)
+            self.block_profile.filter(2, 1, float("inf"))
 
             metric = Metric(self.agent, Metric.TYPE_PROFILE, Metric.CATEGORY_BLOCK_PROFILE, Metric.NAME_BLOCKING_CALL_TIMES, Metric.UNIT_MILLISECOND)
             measurement = metric.create_measurement(Metric.TRIGGER_TIMER, self.block_profile.measurement, 1, self.block_profile)
@@ -197,6 +198,7 @@ class BlockReporter:
             if self.block_profile.num_samples > 0 and self.http_profile.num_samples > 0:
                 self.http_profile.normalize(self.profile_duration)
                 self.http_profile.convert_to_percent(self.block_profile.measurement)
+                self.block_profile.filter(2, 1, 100)
 
                 metric = Metric(self.agent, Metric.TYPE_PROFILE, Metric.CATEGORY_HTTP_TRACE, Metric.NAME_HTTP_TRANSACTION_BREAKDOWN, Metric.UNIT_PERCENT)
                 measurement = metric.create_measurement(Metric.TRIGGER_TIMER, self.http_profile.measurement, None, self.http_profile)

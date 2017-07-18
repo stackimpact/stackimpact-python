@@ -154,6 +154,8 @@ class CPUReporter:
         with self.profile_lock:
             self.profile.evaluate_percent(self.profile_duration / self.SAMPLING_RATE)
 
+            self.profile.filter(2, 1, 100)
+
             metric = Metric(self.agent, Metric.TYPE_PROFILE, Metric.CATEGORY_CPU_PROFILE, Metric.NAME_MAIN_THREAD_CPU_USAGE, Metric.UNIT_PERCENT)
             measurement = metric.create_measurement(Metric.TRIGGER_TIMER, self.profile.measurement, None, self.profile)
             self.agent.message_queue.add('metric', metric.to_dict())
