@@ -26,7 +26,7 @@ from .reporters.error_reporter import ErrorReporter
 
 class Agent:
 
-    AGENT_VERSION = "1.0.4"
+    AGENT_VERSION = "1.0.5"
     SAAS_DASHBOARD_ADDRESS = "https://agent-api.stackimpact.com"
 
     def __init__(self, **kwargs):
@@ -61,7 +61,7 @@ class Agent:
 
     def start(self, **kwargs):
         if not min_version(2, 7) and not min_version(3, 4):
-            raise Exception('Supported Python versions 2.6 or highter and 3.4 or higher')
+            raise Exception('Supported Python versions 2.6 or higher and 3.4 or higher')
 
         if platform.python_implementation() != 'CPython':
             raise Exception('Supported Python interpreter is CPython')
@@ -114,24 +114,26 @@ class Agent:
 
         register_signal(signal.SIGUSR2, _signal_handler)
 
-        # destroy agent on exit
-        def _exit_handler(*arg):
-            if not self.agent_started or self.agent_destroyed:
-                return
+        if self.get_option('auto_destroy') == False:
+            # destroy agent on exit
+            def _exit_handler(*arg):
+                if not self.agent_started or self.agent_destroyed:
+                    return
 
-            try:
-                self.message_queue.flush()
-                self.destroy()
-            except Exception:
-                self.exception()
+                try:
+                    self.message_queue.flush()
+                    self.destroy()
+                except Exception:
+                    self.exception()
 
 
-        atexit.register(_exit_handler)
+            atexit.register(_exit_handler)
 
-        register_signal(signal.SIGQUIT, _exit_handler, ignore_default = False)
-        register_signal(signal.SIGINT, _exit_handler, ignore_default = False)
-        register_signal(signal.SIGTERM, _exit_handler, ignore_default = False)
-        register_signal(signal.SIGHUP, _exit_handler, ignore_default = False)
+            register_signal(signal.SIGQUIT, _exit_handler, once = True)
+            register_signal(signal.SIGINT, _exit_handler, once = True)
+            register_signal(signal.SIGTERM, _exit_handler, once = True)
+            register_signal(signal.SIGHUP, _exit_handler, once = True)
+
 
         self.agent_started = True
         self.log('Agent started')
@@ -178,7 +180,6 @@ class Agent:
 
     def exception(self):
         if self.get_option('debug'):
-            self.print_err(sys.exc_info()[0])
             traceback.print_exc()
 
 

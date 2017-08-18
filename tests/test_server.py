@@ -21,6 +21,8 @@ class TestServer(threading.Thread):
         self.port = port
         RequestHandler.delay = delay
         RequestHandler.handler_func = [handler_func]
+        RequestHandler.response_data = '{}'
+        RequestHandler.response_code = 200
         threading.Thread.__init__(self)
         self.server = HTTPServer(('localhost', self.port), RequestHandler)
 
@@ -29,6 +31,9 @@ class TestServer(threading.Thread):
 
     def set_response_data(self, response_data):
         RequestHandler.response_data = response_data
+
+    def set_response_code(self, response_code):
+        RequestHandler.response_code = response_code
 
     def run(self):
         self.server.handle_request()
@@ -39,6 +44,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     handler_func = None
     request_data = None
     response_data = '{}'
+    response_code = 200
 
 
     def do_GET(self):
@@ -48,7 +54,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         if RequestHandler.handler_func: 
             RequestHandler.handler_func[0]()
 
-        self.send_response(200)
+        self.send_response(RequestHandler.response_code)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         self.wfile.write(RequestHandler.response_data.encode('utf-8'))
@@ -64,7 +70,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         decompressed_data = gzip.GzipFile(fileobj=BytesIO(self.rfile.read(content_len))).read()
         RequestHandler.request_data = decompressed_data.decode('utf-8')
 
-        self.send_response(200)
+        self.send_response(RequestHandler.response_code)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         self.wfile.write(RequestHandler.response_data.encode('utf-8'))

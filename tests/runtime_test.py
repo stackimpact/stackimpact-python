@@ -30,7 +30,7 @@ class RuntimeTestCase(unittest.TestCase):
     	def _handler(signum, frame):
     		result['handler'] += 1
 
-    	register_signal(signal.SIGUSR1, _handler, ignore_default = False)
+    	register_signal(signal.SIGUSR1, _handler, once = True)
 
     	os.kill(os.getpid(), signal.SIGUSR1)
     	os.kill(os.getpid(), signal.SIGUSR1)

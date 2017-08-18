@@ -122,7 +122,7 @@ def unpatch(obj, func_name):
     setattr(obj, func_name, getattr(wrapper, '__stackimpact_orig__'))
 
 
-def register_signal(signal_number, handler_func, ignore_default = True):
+def register_signal(signal_number, handler_func, once = False):
     prev_handler = None
 
     def _handler(signum, frame):
@@ -130,8 +130,10 @@ def register_signal(signal_number, handler_func, ignore_default = True):
 
         if not skip_prev:
             if callable(prev_handler):
+                if once:
+                    signal.signal(signum, prev_handler)
                 prev_handler(signum, frame)
-            elif prev_handler == signal.SIG_DFL and not ignore_default:
+            elif prev_handler == signal.SIG_DFL and once:
                 signal.signal(signum, signal.SIG_DFL)
                 os.kill(os.getpid(), signum)
 

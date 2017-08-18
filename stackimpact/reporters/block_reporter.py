@@ -189,6 +189,7 @@ class BlockReporter:
 
         with self.profile_lock:
             self.block_profile.normalize(self.profile_duration)
+            self.block_profile.floor()
             self.block_profile.filter(2, 1, float("inf"))
 
             metric = Metric(self.agent, Metric.TYPE_PROFILE, Metric.CATEGORY_BLOCK_PROFILE, Metric.NAME_BLOCKING_CALL_TIMES, Metric.UNIT_MILLISECOND)

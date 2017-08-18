@@ -285,6 +285,13 @@ class Breakdown:
             child.normalize(factor)
 
 
+    def floor(self):
+        self.measurement = int(self.measurement)
+
+        for name, child in self.children.items():
+            child.floor()
+
+
     def to_dict(self):
         children_map = []
         for name, child in self.children.items():

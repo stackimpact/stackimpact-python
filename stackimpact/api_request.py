@@ -33,11 +33,11 @@ class APIRequest:
             'Content-Encoding': 'gzip'
         }
 
-        host_name = 'host'
+        host_name = 'undefined'
         try:
             host_name = socket.gethostname()
         except Exception:
-            pass
+            self.agent.exception()
 
         req_body = {
             'runtime_type':    'python',
@@ -71,6 +71,7 @@ class APIRequest:
             headers = headers)
 
         response = urlopen(request, timeout = 20)
+
         result_data = response.read()
 
         if response.info():

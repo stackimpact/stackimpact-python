@@ -71,13 +71,14 @@ Add the agent initialization to the worker code, e.g. wsgi.py, if applicable.
 All initialization options:
 
 * `agent_key` (Required) The access key for communication with the StackImpact servers.
-* `app_name` (Required) A name to identify and group application data. Typically, a single codebase corresponds to one application.
+* `app_name` (Required) A name to identify and group application data. Typically, a single codebase, deployable unit or executable module corresponds to one application.
 * `app_version` (Optional) Sets application version, which can be used to associate profiling information with the source code release.
 * `app_environment` (Optional) Used to differentiate applications in different environments.
 * `host_name` (Optional) By default, host name will be the OS hostname.
 * `debug` (Optional) Enables debug logging.
 * `cpu_profiler_disabled`, `allocation_profiler_disabled`, `block_profiler_disabled`, `error_profiler_disabled` (Optional) Disables respective profiler when `True`.
 * `include_agent_frames`, `include_system_frames` (Optional) Set to `True` to not exclude agent and/or system stack frames from profiles.
+* `auto_destroy` (Optional) Set to `False` to disable agent's exit handlers. If necessary, call `destroy()` to gracefully shutdown the agent.
 
 
 

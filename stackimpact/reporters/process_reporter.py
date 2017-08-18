@@ -19,7 +19,7 @@ class ProcessReporter:
 
 
     def start(self):
-        self.report_timer = self.agent.schedule(5, 60, self.report)
+        self.report_timer = self.agent.schedule(60, 60, self.report)
 
 
     def destroy(self):
