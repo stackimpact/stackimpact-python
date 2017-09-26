@@ -37,11 +37,11 @@ agent = stackimpact.start(
 # Simulate CPU intensive work
 def simulate_cpu():
     duration = 10 * 60 * 60
-    usage = 20
+    usage = 10
 
     while True:
         for j in range(0, duration):
-            for i in range(0, usage * 20000):
+            for i in range(0, usage * 15000):
                 text = "text1" + str(i)
                 text = text + "text2"
 

@@ -41,7 +41,7 @@ class AllocationReporter:
 
         self.reset()
 
-        self.profiler_scheduler = ProfilerScheduler(self.agent, 20, 5, 120, self.record, self.report)
+        self.profiler_scheduler = ProfilerScheduler(self.agent, 30, 4, 120, self.record, self.report)
         self.profiler_scheduler.start()
 
 
