@@ -114,7 +114,7 @@ class AllocationReporter:
             return
 
         self.profile.normalize(self.profile_duration)
-        self.propagate()
+        self.profile.propagate()
         self.profile.floor()
         self.profile.filter(2, 1000, float("inf"))
 

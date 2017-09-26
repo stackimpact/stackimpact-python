@@ -28,7 +28,6 @@ import stackimpact
 # StackImpact agent initialization
 agent = stackimpact.start(
     agent_key = os.environ['AGENT_KEY'],
-    dashboard_address = os.environ['DASHBOARD_ADDRESS'],
     app_name = 'ExamplePythonFlaskApp',
     app_version = '1.0.0',
     debug = True)
