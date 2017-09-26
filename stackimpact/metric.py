@@ -20,7 +20,6 @@ class Metric:
     CATEGORY_CPU_PROFILE = 'cpu-profile'
     CATEGORY_MEMORY_PROFILE = 'memory-profile'
     CATEGORY_BLOCK_PROFILE = 'block-profile'
-    CATEGORY_HTTP_TRACE = 'http-trace'
     CATEGORY_ERROR_PROFILE = 'error-profile'
 
     NAME_CPU_TIME = 'CPU time'
@@ -36,7 +35,6 @@ class Metric:
     NAME_THREAD_COUNT = 'Active threads'
     NAME_UNCOLLECTED_ALLOCATIONS = 'Uncollected allocations'
     NAME_BLOCKING_CALL_TIMES = 'Blocking call times'
-    NAME_HTTP_TRANSACTION_BREAKDOWN = 'HTTP transaction breakdown'
     NAME_HANDLED_EXCEPTIONS = 'Handled exceptions'
 
     UNIT_NONE = ''
@@ -283,6 +281,13 @@ class Breakdown:
 
         for name, child in self.children.items():
             child.normalize(factor)
+
+
+    def round(self):
+        self.measurement = round(self.measurement)
+
+        for name, child in self.children.items():
+            child.round()
 
 
     def floor(self):

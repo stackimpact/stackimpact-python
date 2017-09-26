@@ -24,7 +24,7 @@ class MessageQueue:
         self.flush_timer = self.agent.schedule(5, 5, self.flush)
 
 
-    def destroy(self):
+    def stop(self):
         if self.flush_timer:
             self.flush_timer.cancel()
             self.flush_timer = None

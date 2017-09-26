@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'stackimpact',
-    version = '1.0.5',
+    version = '1.1.0',
     description = 'StackImpact Python Agent',
     author = 'StackImpact',
     author_email = 'devops@stackimpact.com',

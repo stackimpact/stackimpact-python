@@ -14,18 +14,26 @@ class ProcessReporter:
 
     def __init__(self, agent):
         self.agent = agent
+        self.started = False
         self.metrics = {}
         self.report_timer = None
 
 
     def start(self):
+        if self.started:
+            return
+        self.started = True
+
         self.report_timer = self.agent.schedule(60, 60, self.report)
 
 
-    def destroy(self):
-        if self.report_timer:
-            self.report_timer.cancel()
-            self.report_timer = None
+    def stop(self):
+        if not self.started:
+            return
+        self.started = False
+
+        self.report_timer.cancel()
+        self.report_timer = None
 
 
     def report(self):

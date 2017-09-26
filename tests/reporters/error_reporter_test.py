@@ -20,6 +20,7 @@ class ErrorReporterTestCase(unittest.TestCase):
             app_name = 'TestPythonApp',
             debug = True
         )
+        agent.error_reporter.start()
 
         try:
             raise ValueError('test_exc_1')
@@ -29,7 +30,7 @@ class ErrorReporterTestCase(unittest.TestCase):
         time.sleep(1.1)
 
         profile_handled_exc = agent.error_reporter.profile
-        print(profile_handled_exc)
+        #print(profile_handled_exc)
 
         self.assertTrue('ValueError: test_exc_1' in str(profile_handled_exc))
         self.assertTrue('test_add_exception' in str(profile_handled_exc))

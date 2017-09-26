@@ -22,6 +22,8 @@ class CPUReporter:
 
     def __init__(self, agent):
         self.agent = agent
+        self.setup_done = False
+        self.started = False
         self.profiler_scheduler = None
         self.profile = None
         self.profile_lock = threading.Lock()
@@ -30,7 +32,7 @@ class CPUReporter:
         self.handler_active = False
 
 
-    def start(self):
+    def setup(self):
         if self.agent.get_option('cpu_profiler_disabled'):
             return
 
@@ -54,22 +56,44 @@ class CPUReporter:
 
         self.prev_signal_handler = signal.signal(signal.SIGPROF, _sample)
 
+        self.setup_done = True
+
+
+    def start(self):
+        if self.agent.get_option('cpu_profiler_disabled'):
+            return
+
+        if not runtime_info.OS_LINUX and not runtime_info.OS_DARWIN:
+            self.agent.log('CPU profiler is only supported on Linux and OS X.')
+            return
+
+        if not self.setup_done:
+            return
+
+        if self.started:
+            return;
+        self.started = True
+
         self.reset()
 
         self.profiler_scheduler = ProfilerScheduler(self.agent, 10, 2, 120, self.record, self.report)
         self.profiler_scheduler.start()
 
 
+    def stop(self):
+        if not self.started:
+            return
+        self.started = False
+
+        self.profiler_scheduler.stop()
+
+
     def destroy(self):
-        if self.agent.get_option('cpu_profiler_disabled'):
+        if not self.setup_done:
             return
 
-        if self.prev_signal_handler != None:
-            signal.setitimer(signal.ITIMER_PROF, 0)
-            signal.signal(signal.SIGPROF, self.prev_signal_handler)
-
-        if self.profiler_scheduler:
-            self.profiler_scheduler.destroy()
+        signal.setitimer(signal.ITIMER_PROF, 0)
+        signal.signal(signal.SIGPROF, self.prev_signal_handler)
 
 
     def reset(self):
@@ -118,12 +142,11 @@ class CPUReporter:
                 filename = signal_frame.f_code.co_filename
                 lineno = signal_frame.f_lineno
 
-                if self.agent.frame_selector.is_agent_frame(filename):
+                if self.agent.frame_cache.is_agent_frame(filename):
                     return None
 
-                if not self.agent.frame_selector.is_system_frame(filename):
-                    frame = Frame(func_name, filename, lineno)
-                    stack.append(frame)
+                frame = Frame(func_name, filename, lineno)
+                stack.append(frame)
 
                 signal_frame = signal_frame.f_back
             

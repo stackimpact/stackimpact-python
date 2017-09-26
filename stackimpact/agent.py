@@ -16,7 +16,7 @@ from .utils import timestamp, generate_uuid
 from .config import Config
 from .config_loader import ConfigLoader
 from .message_queue import MessageQueue
-from .frame_selector import FrameSelector
+from .frame_cache import FrameCache
 from .reporters.process_reporter import ProcessReporter
 from .reporters.cpu_reporter import CPUReporter
 from .reporters.allocation_reporter import AllocationReporter
@@ -26,7 +26,7 @@ from .reporters.error_reporter import ErrorReporter
 
 class Agent:
 
-    AGENT_VERSION = "1.0.5"
+    AGENT_VERSION = "1.1.0"
     SAAS_DASHBOARD_ADDRESS = "https://agent-api.stackimpact.com"
 
     def __init__(self, **kwargs):
@@ -42,7 +42,7 @@ class Agent:
         self.config = Config(self)
         self.config_loader = ConfigLoader(self)
         self.message_queue = MessageQueue(self)
-        self.frame_selector = FrameSelector(self)
+        self.frame_cache = FrameCache(self)
         self.process_reporter = ProcessReporter(self)
         self.cpu_reporter = CPUReporter(self)
         self.allocation_reporter = AllocationReporter(self)
@@ -93,12 +93,10 @@ class Agent:
 
         self.config_loader.start()
         self.message_queue.start()
-        self.frame_selector.start()
-        self.process_reporter.start()
-        self.cpu_reporter.start()
-        self.allocation_reporter.start()
-        self.block_reporter.start()
-        self.error_reporter.start()
+        self.frame_cache.start()
+
+        self.cpu_reporter.setup()
+        self.block_reporter.setup()
 
         # execute main_thread_func in main thread on signal
         def _signal_handler(signum, frame):
@@ -147,14 +145,17 @@ class Agent:
         if self.agent_destroyed:
             return
 
-        self.config_loader.destroy()
-        self.message_queue.destroy()
-        self.frame_selector.destroy()
-        self.process_reporter.destroy()
+        self.config_loader.stop()
+        self.message_queue.stop()
+        self.frame_cache.stop()
+        self.cpu_reporter.stop()
+        self.allocation_reporter.stop()
+        self.block_reporter.stop()
+        self.error_reporter.stop()
+        self.process_reporter.stop()
+
         self.cpu_reporter.destroy()
-        self.allocation_reporter.destroy()
         self.block_reporter.destroy()
-        self.error_reporter.destroy()
 
         self.agent_destroyed = True
         self.log('Agent destroyed')

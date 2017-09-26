@@ -23,6 +23,7 @@ class CPUReporterTestCase(unittest.TestCase):
             app_name = 'TestPythonApp',
             debug = True
         )
+        agent.cpu_reporter.start()
 
         def record():
             agent.cpu_reporter.record(2)

@@ -1,6 +1,4 @@
-# export AGENT_KEY=agent_key_here
-# gunicorn --workers 2 --bind 127.0.0.1:5010 flask_app:app
-# gunicorn --workers 2 -k gevent --bind 127.0.0.1:5010 flask_app:app
+#env AGENT_KEY=agnetkeyhere FLASK_APP=examples/flask_app.py flask run -p 5010
 
 from __future__ import print_function
 
@@ -22,7 +20,7 @@ except ImportError:
     # python 3
     from urllib.request import urlopen
 
-
+sys.path.append(".")
 import stackimpact
 
 
@@ -30,6 +28,7 @@ import stackimpact
 # StackImpact agent initialization
 agent = stackimpact.start(
     agent_key = os.environ['AGENT_KEY'],
+    dashboard_address = os.environ['DASHBOARD_ADDRESS'],
     app_name = 'ExamplePythonFlaskApp',
     app_version = '1.0.0',
     debug = True)

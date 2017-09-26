@@ -24,16 +24,17 @@ class BlockReporter:
 
     def __init__(self, agent):
         self.agent = agent
+        self.setup_done = False
+        self.started = False
         self.profiler_scheduler = None
         self.profile_lock = threading.Lock()
-        self.block_profile = None
-        self.http_profile = None
+        self.profile = None
         self.profile_duration = 0
         self.prev_signal_handler = None
         self.handler_active = False
 
 
-    def start(self):
+    def setup(self):
         if self.agent.get_option('block_profiler_disabled'):
             return
 
@@ -64,34 +65,46 @@ class BlockReporter:
             self.handler_active = False
 
         self.prev_signal_handler = signal.signal(signal.SIGALRM, _sample)
+
+        self.setup_done = True
+
+
+    def start(self):
+        if not self.setup_done:
+            return
+
+        if self.started:
+            return
+        self.started = True
+
         self.reset()
 
         self.profiler_scheduler = ProfilerScheduler(self.agent, 10, 2, 120, self.record, self.report)
         self.profiler_scheduler.start()
 
 
+    def stop(self):
+        if not self.started:
+            return;
+        self.started = False
+
+        self.profiler_scheduler.stop()
+
+
     def destroy(self):
-        if self.agent.get_option('block_profiler_disabled'):
+        if not self.setup_done:
             return
 
-        if self.prev_signal_handler != None:
-            signal.setitimer(signal.ITIMER_REAL, 0)
-            signal.signal(signal.SIGALRM, self.prev_signal_handler)
-
-        if self.profiler_scheduler:
-            self.profiler_scheduler.destroy()
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, self.prev_signal_handler)
 
 
     def reset(self):
-        self.block_profile = Breakdown('root')
-        self.http_profile = Breakdown('root')
+        self.profile = Breakdown('root')
         self.profile_duration = 0
 
 
     def record(self, duration):
-        if self.agent.config.is_profiling_disabled():
-            return
-
         self.agent.log('Activating block profiler.')
 
         signal.setitimer(signal.ITIMER_REAL, self.SAMPLING_RATE, self.SAMPLING_RATE)
@@ -102,11 +115,11 @@ class BlockReporter:
 
         self.profile_duration += duration
 
-        self.agent.log('Block profiler CPU overhead per activity second: {0} seconds'.format(self.block_profile._overhead / self.profile_duration))
+        self.agent.log('Block profiler CPU overhead per activity second: {0} seconds'.format(self.profile._overhead / self.profile_duration))
 
 
     def process_sample(self, signal_frame, sample_time, main_thread_id):
-        if self.block_profile:
+        if self.profile:
             start = time.clock()
 
             current_frames = sys._current_frames()
@@ -117,21 +130,23 @@ class BlockReporter:
 
                 stack = self.recover_stack(thread_frame)
                 if stack:
-                    self.update_block_profile(stack, sample_time)
-                    self.update_http_profile(stack, sample_time)
+                    current_node = self.profile
+                    for frame in reversed(stack):
+                        current_node = current_node.find_or_add_child(str(frame))
+                    current_node.increment(sample_time, 1)
 
                 thread_id, thread_frame, stack = None, None, None
 
             items = None
             current_frames = None
 
-            self.block_profile._overhead += (time.clock() - start)
-
+            self.profile._overhead += (time.clock() - start)
 
 
     def recover_stack(self, thread_frame):
         stack = []
 
+        system_only = True
         depth = 0
         while thread_frame is not None and depth <= self.MAX_TRACEBACK_SIZE:
             if thread_frame.f_code and thread_frame.f_code.co_name and thread_frame.f_code.co_filename:
@@ -139,45 +154,26 @@ class BlockReporter:
                 filename = thread_frame.f_code.co_filename
                 lineno = thread_frame.f_lineno
 
-                if self.agent.frame_selector.is_agent_frame(filename):
+                if self.agent.frame_cache.is_agent_frame(filename):
                     return None
 
-                if not self.agent.frame_selector.is_system_frame(filename):
-                    frame = Frame(func_name, filename, lineno)
-                    stack.append(frame)
+                if not self.agent.frame_cache.is_system_frame(filename):
+                    system_only = False
+
+                frame = Frame(func_name, filename, lineno)
+                stack.append(frame)
 
                 thread_frame = thread_frame.f_back
             
             depth += 1
 
+        if system_only:
+            return None
+
         if len(stack) == 0:
             return None
         else:
             return stack
-
-
-    def update_block_profile(self, stack, sample_time):
-        current_node = self.block_profile
-        current_node.increment(sample_time, 1)
-
-        for frame in reversed(stack):
-            current_node = current_node.find_or_add_child(str(frame))
-            current_node.increment(sample_time, 1)
-
-
-    def update_http_profile(self, stack, sample_time):
-        include = False
-        for frame in stack:
-            if self.agent.frame_selector.is_http_frame(frame.filename):
-                include = True
-
-        if include:
-            current_node = self.http_profile
-            current_node.increment(sample_time, 1)
-
-            for frame in reversed(stack):
-                current_node = current_node.find_or_add_child(str(frame))
-                current_node.increment(sample_time, 1)
 
 
     def report(self):
@@ -188,21 +184,13 @@ class BlockReporter:
             return
 
         with self.profile_lock:
-            self.block_profile.normalize(self.profile_duration)
-            self.block_profile.floor()
-            self.block_profile.filter(2, 1, float("inf"))
+            self.profile.normalize(self.profile_duration)
+            self.profile.propagate()
+            self.profile.floor()
+            self.profile.filter(2, 1, float("inf"))
 
             metric = Metric(self.agent, Metric.TYPE_PROFILE, Metric.CATEGORY_BLOCK_PROFILE, Metric.NAME_BLOCKING_CALL_TIMES, Metric.UNIT_MILLISECOND)
-            measurement = metric.create_measurement(Metric.TRIGGER_TIMER, self.block_profile.measurement, 1, self.block_profile)
+            measurement = metric.create_measurement(Metric.TRIGGER_TIMER, self.profile.measurement, 1, self.profile)
             self.agent.message_queue.add('metric', metric.to_dict())
-
-            if self.block_profile.num_samples > 0 and self.http_profile.num_samples > 0:
-                self.http_profile.normalize(self.profile_duration)
-                self.http_profile.convert_to_percent(self.block_profile.measurement)
-                self.block_profile.filter(2, 1, 100)
-
-                metric = Metric(self.agent, Metric.TYPE_PROFILE, Metric.CATEGORY_HTTP_TRACE, Metric.NAME_HTTP_TRANSACTION_BREAKDOWN, Metric.UNIT_PERCENT)
-                measurement = metric.create_measurement(Metric.TRIGGER_TIMER, self.http_profile.measurement, None, self.http_profile)
-                self.agent.message_queue.add('metric', metric.to_dict())
 
         self.reset()

@@ -38,7 +38,7 @@ class ProfilerSchedulerTestCase(unittest.TestCase):
         self.assertFalse(stats["records"] < 10)
         self.assertFalse(stats["reports"] < 2)
 
-        ps.destroy()
+        ps.stop()
         agent.destroy()
 
 

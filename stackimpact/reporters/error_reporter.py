@@ -16,6 +16,7 @@ class ErrorReporter:
 
     def __init__(self, agent):
         self.agent = agent
+        self.started = False
         self.process_timer = None
         self.report_timer = None
         self.exc_queue = collections.deque()
@@ -27,6 +28,10 @@ class ErrorReporter:
     def start(self):
         if self.agent.get_option('error_profiler_disabled'):
             return
+
+        if self.started:
+            return
+        self.started = True
 
         self.reset_profile()
 
@@ -47,19 +52,18 @@ class ErrorReporter:
         patch(sys, 'exc_info', None, _exc_info)
 
 
-    def destroy(self):
-        if self.agent.get_option('error_profiler_disabled'):
+    def stop(self):
+        if not self.started:
             return
+        self.started = False
 
         unpatch(sys, 'exc_info')
         
-        if self.process_timer:
-            self.process_timer.cancel()
-            self.process_timer = None
+        self.process_timer.cancel()
+        self.process_timer = None
 
-        if self.report_timer:
-            self.report_timer.cancel()
-            self.report_timer = None
+        self.report_timer.cancel()
+        self.report_timer = None
     
 
     def reset_profile(self):
@@ -97,10 +101,10 @@ class ErrorReporter:
             filename = tb_frame[0]
             lineno = tb_frame[1]
 
-            if self.agent.frame_selector.is_agent_frame(filename):
+            if self.agent.frame_cache.is_agent_frame(filename):
                 return None
 
-            if not self.agent.frame_selector.is_system_frame(filename):
+            if not self.agent.frame_cache.is_system_frame(filename):
                 frame = Frame(func_name, filename, lineno)
                 stack.append(frame)
 

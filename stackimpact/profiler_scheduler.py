@@ -31,7 +31,7 @@ class ProfilerScheduler:
         self.report_timer = self.agent.schedule(self.report_interval, self.report_interval, self.execute_report)
 
 
-    def destroy(self):
+    def stop(self):
         if self.random_timer:
             self.random_timer.cancel()
             self.random_timer = None

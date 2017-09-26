@@ -18,6 +18,7 @@ class ProcessReporterTestCase(unittest.TestCase):
             app_name = 'TestPythonApp',
             debug = True
         )
+        agent.process_reporter.start()
 
         agent.process_reporter.report()
         time.sleep(0.1)

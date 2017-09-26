@@ -19,13 +19,12 @@ errors and runtime metrics. Learn more at
 Features
 ^^^^^^^^
 
--  Automatic hot spot profiling for CPU, memory allocations, blocking
+-  Continuous hot spot profiling for CPU, memory allocations, blocking
    calls
--  Automatic bottleneck tracing for HTTP handlers and other libraries
--  Exception monitoring
+-  Error monitoring
 -  Health monitoring including CPU, memory, garbage collection and other
    runtime metrics
--  Anomaly alerts on most important metrics
+-  Anomaly detection
 -  Multiple account users for team collaboration
 
 Learn more on the `features <https://stackimpact.com/features/>`__ page
@@ -106,9 +105,8 @@ All initialization options:
 -  ``cpu_profiler_disabled``, ``allocation_profiler_disabled``,
    ``block_profiler_disabled``, ``error_profiler_disabled`` (Optional)
    Disables respective profiler when ``True``.
--  ``include_agent_frames``, ``include_system_frames`` (Optional) Set to
-   ``True`` to not exclude agent and/or system stack frames from
-   profiles.
+-  ``include_agent_frames`` (Optional) Set to ``True`` to not exclude
+   agent stack frames from profile call graphs.
 -  ``auto_destroy`` (Optional) Set to ``False`` to disable agent's exit
    handlers. If necessary, call ``destroy()`` to gracefully shutdown the
    agent.

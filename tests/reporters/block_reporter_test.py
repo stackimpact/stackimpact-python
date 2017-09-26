@@ -29,6 +29,7 @@ class BlockReporterTestCase(unittest.TestCase):
             app_name = 'TestPythonApp',
             debug = True
         )
+        agent.block_reporter.start()
 
         lock = threading.Lock()
         event = threading.Event()
@@ -64,7 +65,6 @@ class BlockReporterTestCase(unittest.TestCase):
 
         result = {}
         def record():
-            agent.frame_selector.add_http_frame_regexp(os.path.join('tests', 'test_server.py'))
             agent.block_reporter.record(2)
 
         record_t = threading.Thread(target=record)
@@ -95,13 +95,11 @@ class BlockReporterTestCase(unittest.TestCase):
 
         record_t.join()
 
-        #print(agent.block_reporter.block_profile)
-        #print(agent.block_reporter.http_profile)
+        #print(agent.block_reporter.profile)
 
-        self.assertTrue('lock_wait' in str(agent.block_reporter.block_profile))
-        self.assertTrue('event_wait' in str(agent.block_reporter.block_profile))
-        self.assertTrue('url_wait' in str(agent.block_reporter.block_profile))
-        self.assertTrue('handler' in str(agent.block_reporter.http_profile))
+        self.assertTrue('lock_wait' in str(agent.block_reporter.profile))
+        self.assertTrue('event_wait' in str(agent.block_reporter.profile))
+        self.assertTrue('url_wait' in str(agent.block_reporter.profile))
 
         agent.destroy()
 

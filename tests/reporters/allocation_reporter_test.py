@@ -21,6 +21,7 @@ class AllocationReporterTestCase(unittest.TestCase):
             app_name = 'TestPythonApp',
             debug = True
         )
+        agent.allocation_reporter.start()
 
         mem1 = []
         def mem_leak(n = 100000):

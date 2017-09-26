@@ -21,6 +21,7 @@ class AllocationReporter:
 
     def __init__(self, agent):
         self.agent = agent
+        self.started = False
         self.profiler_scheduler = None
         self.profile = None
         self.profile_duration = 0
@@ -34,27 +35,22 @@ class AllocationReporter:
             self.agent.log('Memory allocation profiling is available for Python 3.4 or higher')
             return
 
+        if self.started:
+            return
+        self.started = True
+
         self.reset()
 
         self.profiler_scheduler = ProfilerScheduler(self.agent, 20, 5, 120, self.record, self.report)
         self.profiler_scheduler.start()
 
 
-    def destroy(self):
-        if self.agent.get_option('allocation_profiler_disabled'):
+    def stop(self):
+        if not self.started:
             return
+        self.started = False
 
-        if self.profiler_scheduler:
-            self.profiler_scheduler.destroy()
-
-
-    def metrics(self):
-        if runtime_info.OS_LINUX:
-            return {
-                'vm-size': read_vm_size()
-            }
-
-        return None
+        self.profiler_scheduler.stop()
 
 
     def reset(self):
@@ -63,9 +59,6 @@ class AllocationReporter:
 
 
     def record(self, max_duration):
-        if self.agent.config.is_profiling_disabled():
-            return
-
         self.agent.log('Activating memory allocation profiler.')
 
         def start():
@@ -100,36 +93,28 @@ class AllocationReporter:
             if stat.traceback:
                 skip_stack = False
                 for frame in stat.traceback:
-                    if self.agent.frame_selector.is_agent_frame(frame.filename):
+                    if self.agent.frame_cache.is_agent_frame(frame.filename):
                         skip_stack = True
                         break
                 if skip_stack:
                     continue
 
                 current_node = self.profile
-                current_node.increment(stat.size, stat.count)
-
                 for frame in reversed(stat.traceback):
                     if frame.filename == '<unknown>':
                         continue
 
-                    if self.agent.frame_selector.is_system_frame(frame.filename):
-                        continue
-
                     frame_name = '{0}:{1}'.format(frame.filename, frame.lineno)
-
                     current_node = current_node.find_or_add_child(frame_name)
-                    current_node.increment(stat.size, stat.count)
+                current_node.increment(stat.size, stat.count)
 
 
     def report(self):
-        if self.agent.config.is_profiling_disabled():
-            return
-
         if self.profile_duration == 0:
             return
 
         self.profile.normalize(self.profile_duration)
+        self.propagate()
         self.profile.floor()
         self.profile.filter(2, 1000, float("inf"))
 
