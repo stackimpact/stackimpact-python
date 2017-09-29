@@ -93,4 +93,4 @@ To enable debug logging, add `debug = True` to startup options. If the debug log
 
 ## Overhead
 
-The agent overhead is measured to be less than 1% for applications under high load.
+The agent overhead is measured to be less than 1% for applications under high load. For applications that are horizontally scaled to multiple processes, StackImpact agents are only active on a small subset (adjustable) of the processes at any point of time, therefore the total overhead is much lower.
