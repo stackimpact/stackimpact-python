@@ -5,13 +5,13 @@ import random
 import threading
 
 import stackimpact
-from stackimpact.runtime import min_version
+from stackimpact.runtime import min_version, runtime_info
 
 
 class AllocationReporterTestCase(unittest.TestCase):
 
     def test_record_allocation_profile(self):
-        if not min_version(3, 4):
+        if not (runtime_info.OS_LINUX or runtime_info.OS_DARWIN) or not min_version(3, 4):
             return
 
         stackimpact._agent = None

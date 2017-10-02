@@ -26,7 +26,7 @@ from .reporters.error_reporter import ErrorReporter
 
 class Agent:
 
-    AGENT_VERSION = "1.1.2"
+    AGENT_VERSION = "1.1.3"
     SAAS_DASHBOARD_ADDRESS = "https://agent-api.stackimpact.com"
 
     def __init__(self, **kwargs):

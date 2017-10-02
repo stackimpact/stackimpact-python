@@ -47,9 +47,11 @@ class ConfigLoader:
             if self.agent.config.is_agent_enabled():        
                 self.agent.error_reporter.start()
                 self.agent.process_reporter.start()
+                self.agent.log('Agent activated')
             else:
                 self.agent.error_reporter.stop()
                 self.agent.process_reporter.stop()
+                self.agent.log('Agent deactivated')
 
 
         except Exception:
