@@ -38,8 +38,8 @@ class BlockReporter:
         if self.agent.get_option('block_profiler_disabled'):
             return
 
-        if not runtime_info.OS_LINUX and not runtime_info.OS_DARWIN:
-            self.agent.log('Block profiler is only supported on Linux and OS X.')
+        if runtime_info.OS_WIN:
+            self.agent.log('Block profiler is not available on Windows.')
             return
 
         sample_time = self.SAMPLING_RATE * 1000

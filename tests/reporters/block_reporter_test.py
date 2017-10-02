@@ -20,8 +20,10 @@ from test_server import TestServer
 
 
 class BlockReporterTestCase(unittest.TestCase):
-
     def test_record_block_profile(self):
+        if runtime_info.OS_WIN:
+            return
+
         stackimpact._agent = None
         agent = stackimpact.start(
             dashboard_address = 'http://localhost:5001',

@@ -44,7 +44,7 @@ class ProcessReporter:
 
     def report(self):
         # CPU
-        if runtime_info.OS_LINUX or runtime_info.OS_DARWIN:
+        if not runtime_info.OS_WIN:
             cpu_time = read_cpu_time()
             if cpu_time != None:
                 cpu_time_metric = self.report_metric(Metric.TYPE_COUNTER, Metric.CATEGORY_CPU, Metric.NAME_CPU_TIME, Metric.UNIT_NANOSECOND, cpu_time)
@@ -59,7 +59,7 @@ class ProcessReporter:
 
 
         # Memory
-        if runtime_info.OS_LINUX or runtime_info.OS_DARWIN:
+        if not runtime_info.OS_WIN:
             max_rss = read_max_rss()
             if max_rss != None:
                 self.report_metric(Metric.TYPE_STATE, Metric.CATEGORY_MEMORY, Metric.NAME_MAX_RSS, Metric.UNIT_KILOBYTE, max_rss)

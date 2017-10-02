@@ -26,10 +26,13 @@ class ProcessReporterTestCase(unittest.TestCase):
 
         metrics = agent.process_reporter.metrics
 
-        self.is_valid(metrics, Metric.TYPE_COUNTER, Metric.CATEGORY_CPU, Metric.NAME_CPU_TIME, 0, float("inf"))
-        self.is_valid(metrics, Metric.TYPE_STATE, Metric.CATEGORY_CPU, Metric.NAME_CPU_USAGE, 0, float("inf"))
+        if not runtime_info.OS_WIN:
+            self.is_valid(metrics, Metric.TYPE_COUNTER, Metric.CATEGORY_CPU, Metric.NAME_CPU_TIME, 0, float("inf"))
+            self.is_valid(metrics, Metric.TYPE_STATE, Metric.CATEGORY_CPU, Metric.NAME_CPU_USAGE, 0, float("inf"))
 
-        self.is_valid(metrics, Metric.TYPE_STATE, Metric.CATEGORY_MEMORY, Metric.NAME_MAX_RSS, 0, float("inf"))
+        if not runtime_info.OS_WIN:
+            self.is_valid(metrics, Metric.TYPE_STATE, Metric.CATEGORY_MEMORY, Metric.NAME_MAX_RSS, 0, float("inf"))
+
         if runtime_info.OS_LINUX:
             self.is_valid(metrics, Metric.TYPE_STATE, Metric.CATEGORY_MEMORY, Metric.NAME_CURRENT_RSS, 0, float("inf"))
             self.is_valid(metrics, Metric.TYPE_STATE, Metric.CATEGORY_MEMORY, Metric.NAME_VM_SIZE, 0, float("inf"))

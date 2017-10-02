@@ -13,7 +13,7 @@ from stackimpact.runtime import runtime_info
 class CPUReporterTestCase(unittest.TestCase):
 
     def test_record_profile(self):
-        if not runtime_info.OS_LINUX and not runtime_info.OS_DARWIN:
+        if runtime_info.OS_WIN:
             return
 
         stackimpact._agent = None

@@ -36,8 +36,8 @@ class CPUReporter:
         if self.agent.get_option('cpu_profiler_disabled'):
             return
 
-        if not runtime_info.OS_LINUX and not runtime_info.OS_DARWIN:
-            self.agent.log('CPU profiler is only supported on Linux and OS X.')
+        if runtime_info.OS_WIN:
+            self.agent.log('CPU profiler is not available on Windows.')
             return
 
         def _sample(signum, signal_frame):

@@ -31,7 +31,11 @@ class AllocationReporter:
         if self.agent.get_option('allocation_profiler_disabled'):
             return
 
-        if not (runtime_info.OS_LINUX or runtime_info.OS_DARWIN) or not min_version(3, 4):
+        if runtime_info.OS_WIN:
+            self.agent.log('Memory allocation profiler is not available on Windows.')
+            return
+
+        if not min_version(3, 4):
             self.agent.log('Memory allocation profiling is available for Python 3.4 or higher')
             return
 

@@ -3,6 +3,7 @@ import sys
 import threading
 
 import stackimpact
+from stackimpact.runtime import runtime_info
 
 
 # python3 -m unittest discover -s tests -p *_test.py
@@ -10,6 +11,9 @@ import stackimpact
 class AgentTestCase(unittest.TestCase):
 
     def test_run_in_main_thread(self):
+        if runtime_info.OS_WIN:
+            return
+
         stackimpact._agent = None
         agent = stackimpact.start(
             dashboard_address = 'http://localhost:5001',
