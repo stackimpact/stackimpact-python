@@ -26,7 +26,7 @@ from .reporters.error_reporter import ErrorReporter
 
 class Agent:
 
-    AGENT_VERSION = "1.1.4"
+    AGENT_VERSION = "1.1.5"
     SAAS_DASHBOARD_ADDRESS = "https://agent-api.stackimpact.com"
 
     def __init__(self, **kwargs):
@@ -113,7 +113,7 @@ class Agent:
         if not runtime_info.OS_WIN:
             register_signal(signal.SIGUSR2, _signal_handler)
 
-        if self.get_option('auto_destroy') == False:
+        if self.get_option('auto_destroy') is None or self.get_option('auto_destroy') is True:
             # destroy agent on exit
             def _exit_handler(*arg):
                 if not self.agent_started or self.agent_destroyed:
