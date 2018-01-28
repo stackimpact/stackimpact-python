@@ -2,7 +2,7 @@
 
 ## Overview
 
-StackImpact is a performance profiler for production applications. It gives developers continuous and historical view of application performance with line-of-code precision, which includes CPU, memory allocation and blocking call hot spots as well as execution bottlenecks, errors and runtime metrics. Learn more at [stackimpact.com](https://stackimpact.com/).
+StackImpact is a production-grade performance profiler built for both production and development environments. It gives developers continuous and historical view of application performance with line-of-code precision that is essential for locating CPU, memory allocation and blocking call hot spots as well as latency bottlenecks. Included runtime metric and error monitoring complement profiles for extensive performance analysis. Learn more at [stackimpact.com](https://stackimpact.com/).
 
 ![dashboard](https://stackimpact.com/wp-content/uploads/2017/06/hotspots-cpu-1.4-python.png)
 
@@ -37,7 +37,7 @@ See full [documentation](https://stackimpact.com/docs/) for reference.
 
 #### Create StackImpact account
 
-[Sign up](https://dashboard.stackimpact.com/#/signup) for a free account (also with GitHub login).
+[Sign up](https://dashboard.stackimpact.com/#/signup) for a free trial account (also with GitHub login).
 
 
 #### Installing the agent
@@ -93,4 +93,4 @@ To enable debug logging, add `debug = True` to startup options. If the debug log
 
 ## Overhead
 
-The agent overhead is measured to be less than 1% for applications under high load. For applications that are horizontally scaled to multiple processes, StackImpact agents are only active on a small subset (adjustable) of the processes at any point of time, therefore the total overhead is much lower.
+The agent overhead is measured to be less than 1% for applications under high load. For applications that are horizontally scaled to multiple processes, StackImpact agents are only active on a small subset of the processes at any point of time, therefore the total overhead is much lower.
