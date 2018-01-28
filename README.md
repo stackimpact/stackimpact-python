@@ -37,7 +37,7 @@ See full [documentation](https://stackimpact.com/docs/) for reference.
 
 #### Create StackImpact account
 
-[Sign up](https://dashboard.stackimpact.com/#/signup) for a free trial account (also with GitHub login).
+Sign up for a free trial account at [stackimpact.com](https://stackimpact.com) (also with GitHub login).
 
 
 #### Installing the agent
