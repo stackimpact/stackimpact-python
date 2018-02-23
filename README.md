@@ -4,7 +4,7 @@
 
 StackImpact is a production-grade performance profiler built for both production and development environments. It gives developers continuous and historical view of application performance with line-of-code precision that is essential for locating CPU, memory allocation and blocking call hot spots as well as latency bottlenecks. Included runtime metric and error monitoring complement profiles for extensive performance analysis. Learn more at [stackimpact.com](https://stackimpact.com/).
 
-![dashboard](https://stackimpact.com/wp-content/uploads/2017/06/hotspots-cpu-1.4-python.png)
+![dashboard](https://stackimpact.com/img/readme/hotspots-cpu-1.4-python.png)
 
 #### Features
 

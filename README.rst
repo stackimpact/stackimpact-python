@@ -4,14 +4,16 @@ StackImpact Python Agent
 Overview
 --------
 
-StackImpact is a performance profiler for production applications. It
-gives developers continuous and historical view of application
-performance with line-of-code precision, which includes CPU, memory
-allocation and blocking call hot spots as well as execution bottlenecks,
-errors and runtime metrics. Learn more at
+StackImpact is a production-grade performance profiler built for both
+production and development environments. It gives developers continuous
+and historical view of application performance with line-of-code
+precision that is essential for locating CPU, memory allocation and
+blocking call hot spots as well as latency bottlenecks. Included runtime
+metric and error monitoring complement profiles for extensive
+performance analysis. Learn more at
 `stackimpact.com <https://stackimpact.com/>`__.
 
-.. figure:: https://stackimpact.com/wp-content/uploads/2017/06/hotspots-cpu-1.4-python.png
+.. figure:: https://stackimpact.com/img/readme/hotspots-cpu-1.4-python.png
    :alt: dashboard
 
    dashboard
@@ -54,8 +56,8 @@ Getting started
 Create StackImpact account
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`Sign up <https://dashboard.stackimpact.com/#/signup>`__ for a free
-account (also with GitHub login).
+Sign up for a free trial account at
+`stackimpact.com <https://stackimpact.com>`__ (also with GitHub login).
 
 Installing the agent
 ^^^^^^^^^^^^^^^^^^^^
@@ -131,6 +133,6 @@ Overhead
 
 The agent overhead is measured to be less than 1% for applications under
 high load. For applications that are horizontally scaled to multiple
-processes, StackImpact agents are only active on a small subset
-(adjustable) of the processes at any point of time, therefore the total
-overhead is much lower.
+processes, StackImpact agents are only active on a small subset of the
+processes at any point of time, therefore the total overhead is much
+lower.
