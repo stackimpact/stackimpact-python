@@ -1,16 +1,15 @@
-StackImpact Python Agent
-========================
+StackImpact Python Profiler
+===========================
 
 Overview
 --------
 
 StackImpact is a production-grade performance profiler built for both
 production and development environments. It gives developers continuous
-and historical view of application performance with line-of-code
-precision that is essential for locating CPU, memory allocation and
-blocking call hot spots as well as latency bottlenecks. Included runtime
-metric and error monitoring complement profiles for extensive
-performance analysis. Learn more at
+and historical code-level view of application performance that is
+essential for locating CPU, memory allocation and I/O hot spots as well
+as latency bottlenecks. Included runtime metric and error monitoring
+complements profiles for extensive performance analysis. Learn more at
 `stackimpact.com <https://stackimpact.com/>`__.
 
 .. figure:: https://stackimpact.com/img/readme/hotspots-cpu-1.4-python.png
@@ -21,16 +20,27 @@ performance analysis. Learn more at
 Features
 ^^^^^^^^
 
--  Continuous hot spot profiling for CPU, memory allocations, blocking
-   calls
--  Error monitoring
+-  Continuous hot spot profiling for CPU usage, memory allocation,
+   blocking calls.
+-  Error and exception monitoring.
 -  Health monitoring including CPU, memory, garbage collection and other
-   runtime metrics
--  Anomaly detection
--  Multiple account users for team collaboration
+   runtime metrics.
+-  Alerts on profile anomalies.
+-  Team access.
 
 Learn more on the `features <https://stackimpact.com/features/>`__ page
 (with screenshots).
+
+How it works
+^^^^^^^^^^^^
+
+The StackImpact profiler agent is imported into a program and used as a
+normal package. When the program runs, various sampling profilers are
+started and stopped automatically by the agent and/or programmatically
+using the agent methods. The agent periodically reports recorded
+profiles and metrics to the StackImpact Dashboard. If an application has
+multiple processes, also referred to as workers, instances or nodes,
+only one or two processes will have active agents at any point of time.
 
 Documentation
 ^^^^^^^^^^^^^
