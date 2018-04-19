@@ -19,7 +19,7 @@ from stackimpact.runtime import min_version, runtime_info
 from test_server import TestServer
 
 
-class BlockReporterTestCase(unittest.TestCase):
+class BlockProfilerTestCase(unittest.TestCase):
     def test_record_block_profile(self):
         if runtime_info.OS_WIN:
             return
@@ -29,9 +29,11 @@ class BlockReporterTestCase(unittest.TestCase):
             dashboard_address = 'http://localhost:5001',
             agent_key = 'key1',
             app_name = 'TestPythonApp',
+            auto_profiling = False,
             debug = True
         )
-        agent.block_reporter.start()
+
+        agent.block_reporter.profiler.reset()
 
         lock = threading.Lock()
         event = threading.Event()
@@ -67,7 +69,9 @@ class BlockReporterTestCase(unittest.TestCase):
 
         result = {}
         def record():
-            agent.block_reporter.record(2)
+            agent.block_reporter.profiler.start_profiler()
+            time.sleep(2)
+            agent.block_reporter.profiler.stop_profiler()
 
         record_t = threading.Thread(target=record)
         record_t.start()
@@ -97,11 +101,12 @@ class BlockReporterTestCase(unittest.TestCase):
 
         record_t.join()
 
-        #print(agent.block_reporter.profile)
+        profile = agent.block_reporter.profiler.build_profile(2)[0]['profile'].to_dict()
+        #print(profile)
 
-        self.assertTrue('lock_wait' in str(agent.block_reporter.profile))
-        self.assertTrue('event_wait' in str(agent.block_reporter.profile))
-        self.assertTrue('url_wait' in str(agent.block_reporter.profile))
+        self.assertTrue('lock_wait' in str(profile))
+        self.assertTrue('event_wait' in str(profile))
+        self.assertTrue('url_wait' in str(profile))
 
         agent.destroy()
 

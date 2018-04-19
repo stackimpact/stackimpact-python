@@ -8,7 +8,7 @@ import stackimpact
 from stackimpact.runtime import min_version, runtime_info
 
 
-class AllocationReporterTestCase(unittest.TestCase):
+class AllocationProfilerTestCase(unittest.TestCase):
 
     def test_record_allocation_profile(self):
         if runtime_info.OS_WIN or not min_version(3, 4):
@@ -19,9 +19,11 @@ class AllocationReporterTestCase(unittest.TestCase):
             dashboard_address = 'http://localhost:5001',
             agent_key = 'key1',
             app_name = 'TestPythonApp',
+            auto_profiling = False,
             debug = True
         )
-        agent.allocation_reporter.start()
+
+        agent.allocation_reporter.profiler.reset()
 
         mem1 = []
         def mem_leak(n = 100000):
@@ -44,7 +46,9 @@ class AllocationReporterTestCase(unittest.TestCase):
 
         result = {}
         def record():
-            agent.allocation_reporter.record(2)
+            agent.allocation_reporter.profiler.start_profiler()
+            time.sleep(2)
+            agent.allocation_reporter.profiler.stop_profiler()
 
         t = threading.Thread(target=record)
         t.start()
@@ -54,9 +58,10 @@ class AllocationReporterTestCase(unittest.TestCase):
 
         t.join()
 
-        #print(agent.allocation_reporter.profile)
+        profile = agent.allocation_reporter.profiler.build_profile(2)[0]['profile'].to_dict()
+        #print(str(profile))
 
-        self.assertTrue('allocation_reporter_test.py' in str(agent.allocation_reporter.profile))
+        self.assertTrue('allocation_profiler_test.py' in str(profile))
 
         agent.destroy()
 

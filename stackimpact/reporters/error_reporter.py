@@ -16,6 +16,7 @@ class ErrorReporter:
 
     def __init__(self, agent):
         self.agent = agent
+        self.setup_done = False
         self.started = False
         self.process_timer = None
         self.report_timer = None
@@ -25,18 +26,9 @@ class ErrorReporter:
         self.added_exceptions = None
 
 
-    def start(self):
+    def setup(self):
         if self.agent.get_option('error_profiler_disabled'):
             return
-
-        if self.started:
-            return
-        self.started = True
-
-        self.reset_profile()
-
-        self.process_timer = self.agent.schedule(1, 1, self.process)
-        self.report_timer = self.agent.schedule(60, 60, self.report)
 
         def _exc_info(ret):
             try:
@@ -51,14 +43,45 @@ class ErrorReporter:
 
         patch(sys, 'exc_info', None, _exc_info)
 
+        self.setup_done = True
+
+
+    def destroy(self):
+        if not self.setup_done:
+            return
+
+        unpatch(sys, 'exc_info')
+
+
+    def reset(self):
+        with self.profile_lock:
+            self.profile = Breakdown('root')
+            self.added_exceptions = {}
+
+
+    def start(self):
+        if self.agent.get_option('error_profiler_disabled'):
+            return
+
+        if not self.agent.get_option('auto_profiling'):
+            return
+
+        if self.started:
+            return
+        self.started = True
+
+        self.reset()
+
+
+        self.process_timer = self.agent.schedule(1, 1, self.process)
+        self.report_timer = self.agent.schedule(60, 60, self.report)
+
 
     def stop(self):
         if not self.started:
             return
         self.started = False
 
-        unpatch(sys, 'exc_info')
-        
         self.process_timer.cancel()
         self.process_timer = None
 
@@ -66,19 +89,13 @@ class ErrorReporter:
         self.report_timer = None
     
 
-    def reset_profile(self):
-        with self.profile_lock:
-            self.profile = Breakdown('root')
-            self.added_exceptions = {}
-
-
     def report(self):
         with self.profile_lock:
             metric = Metric(self.agent, Metric.TYPE_PROFILE, Metric.CATEGORY_ERROR_PROFILE, Metric.NAME_HANDLED_EXCEPTIONS, Metric.UNIT_NONE)
             measurement = metric.create_measurement(Metric.TRIGGER_TIMER, self.profile.measurement, 60, self.profile)
             self.agent.message_queue.add('metric', metric.to_dict())
 
-        self.reset_profile()
+        self.reset()
 
 
     def process(self):

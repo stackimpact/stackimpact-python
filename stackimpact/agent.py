@@ -10,6 +10,8 @@ import os
 import signal
 import atexit
 import platform
+import random
+import math
 
 from .runtime import min_version, runtime_info, register_signal
 from .utils import timestamp, generate_uuid
@@ -18,22 +20,45 @@ from .config_loader import ConfigLoader
 from .message_queue import MessageQueue
 from .frame_cache import FrameCache
 from .reporters.process_reporter import ProcessReporter
-from .reporters.cpu_reporter import CPUReporter
-from .reporters.allocation_reporter import AllocationReporter
-from .reporters.block_reporter import BlockReporter
+from .reporters.profile_reporter import ProfileReporter, ProfilerConfig
 from .reporters.error_reporter import ErrorReporter
+from .reporters.span_reporter import SpanReporter
+from .profilers.cpu_profiler import CPUProfiler
+from .profilers.allocation_profiler import AllocationProfiler
+from .profilers.block_profiler import BlockProfiler
+
+
+class Span:
+
+    def __init__(self, stop_func = None):
+        if stop_func:
+            self.stop_func = stop_func
+
+
+    def stop(self):
+        if self.stop_func:
+            self.stop_func()
+
+
+    def __enter__(self):
+        pass
+
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.stop()
 
 
 class Agent:
 
-    AGENT_VERSION = "1.1.5"
+    AGENT_VERSION = "1.2.2"
     SAAS_DASHBOARD_ADDRESS = "https://agent-api.stackimpact.com"
 
     def __init__(self, **kwargs):
         self.agent_started = False
         self.agent_destroyed = False
 
-        self.profiler_lock = threading.Lock()
+        self.profiler_active = False
+        self.span_active = False
 
         self.main_thread_func = None
 
@@ -44,10 +69,36 @@ class Agent:
         self.message_queue = MessageQueue(self)
         self.frame_cache = FrameCache(self)
         self.process_reporter = ProcessReporter(self)
-        self.cpu_reporter = CPUReporter(self)
-        self.allocation_reporter = AllocationReporter(self)
-        self.block_reporter = BlockReporter(self)
         self.error_reporter = ErrorReporter(self)
+        self.span_reporter = SpanReporter(self)
+
+        config = ProfilerConfig()
+        config.log_prefix = 'CPU profiler'
+        config.max_profile_duration = 20
+        config.max_span_duration = 5
+        config.max_span_count = 30
+        config.span_interval = 20
+        config.report_interval = 120
+        self.cpu_reporter = ProfileReporter(self, CPUProfiler(self), config)
+
+        config = ProfilerConfig()
+        config.log_prefix = 'Allocation profiler'
+        config.max_profile_duration = 20
+        config.max_span_duration = 5
+        config.max_span_count = 30
+        config.span_interval = 20
+        config.report_interval = 120
+        self.allocation_reporter = ProfileReporter(self, AllocationProfiler(self), config)
+
+        config = ProfilerConfig()
+        config.log_prefix = 'Block profiler'
+        config.max_profile_duration = 20
+        config.max_span_duration = 5
+        config.max_span_count = 30
+        config.span_interval = 20
+        config.report_interval = 120
+        self.block_reporter = ProfileReporter(self, BlockProfiler(self), config)
+
 
         self.options = None
 
@@ -75,6 +126,9 @@ class Agent:
 
         self.options = kwargs
 
+        if 'auto_profiling' not in self.options:
+            self.options['auto_profiling'] = True
+
         if 'dashboard_address' not in self.options:
             self.options['dashboard_address'] = self.SAAS_DASHBOARD_ADDRESS
 
@@ -87,7 +141,6 @@ class Agent:
         if 'host_name' not in self.options:
             self.options['host_name'] = socket.gethostname()
 
-
         self.run_id = generate_uuid()
         self.run_ts = timestamp()
 
@@ -96,7 +149,11 @@ class Agent:
         self.frame_cache.start()
 
         self.cpu_reporter.setup()
+        self.allocation_reporter.setup()
         self.block_reporter.setup()
+        self.span_reporter.setup()
+        self.error_reporter.setup()
+        self.process_reporter.setup()
 
         # execute main_thread_func in main thread on signal
         def _signal_handler(signum, frame):
@@ -139,6 +196,121 @@ class Agent:
         self.log('Agent started')
 
 
+    def enable(self):
+        if not self.config.is_agent_enabled():
+            self.cpu_reporter.start()
+            self.allocation_reporter.start()
+            self.block_reporter.start()
+            self.span_reporter.start()
+            self.error_reporter.start()
+            self.process_reporter.start()
+            self.config.set_agent_enabled(True)
+
+
+    def disable(self):
+        if self.config.is_agent_enabled():
+            self.cpu_reporter.stop()
+            self.allocation_reporter.stop()
+            self.block_reporter.stop()
+            self.span_reporter.stop()
+            self.error_reporter.stop()
+            self.process_reporter.stop()
+            self.config.set_agent_enabled(False)
+
+
+    def profile(self, name = 'Default'):
+        if not self.agent_started or self.span_active:
+          return Span(None)
+
+        self.span_active = True
+
+        selected_reporter = None
+        active_reporters = []
+        if self.cpu_reporter.started:
+            active_reporters.append(self.cpu_reporter)
+        if self.allocation_reporter.started:
+            active_reporters.append(self.allocation_reporter)
+        if self.block_reporter.started:
+            active_reporters.append(self.block_reporter)
+
+        if len(active_reporters) > 0:
+            selected_reporter = active_reporters[int(math.floor(random.random() * len(active_reporters)))]
+            if not selected_reporter.start_profiling(True, True):
+                selected_reporter = None
+
+        start_timestamp = timestamp()
+
+        def stop_func():
+            if selected_reporter:
+                selected_reporter.stop_profiling()
+
+            duration = timestamp() - start_timestamp
+            self.span_reporter.record_span(name, duration)
+
+            self.span_active = False
+
+        return Span(stop_func)
+
+
+    def _start_profiler(self, reporter):
+        if not self.agent_started or self.get_option('auto_profiling'):
+          return
+
+        self.span_active = True
+
+        reporter.start()
+        reporter.start_profiling(True, False)
+
+
+    def _stop_profiler(self, reporter):
+        if not self.agent_started or self.get_option('auto_profiling'):
+          return
+
+        reporter.stop_profiling()
+        reporter.report(False)
+        reporter.stop()
+        self.message_queue.flush(False)
+
+        self.span_active = False
+
+
+    def start_cpu_profiler(self):
+        self._start_profiler(self.cpu_reporter)
+
+
+    def stop_cpu_profiler(self):
+        self._stop_profiler(self.cpu_reporter)
+
+
+    def start_allocation_profiler(self):
+        self._start_profiler(self.allocation_reporter)
+
+
+    def stop_allocation_profiler(self):
+        self._stop_profiler(self.allocation_reporter)
+
+
+    def start_block_profiler(self):
+        self._start_profiler(self.block_reporter)
+
+
+    def stop_block_profiler(self):
+        self._stop_profiler(self.block_reporter)
+
+
+    def report(self):
+        if not self.agent_started or self.get_option('auto_profiling'):
+            return
+
+        self.configLoader.load(True)
+
+        self.cpuReporter.report(True);
+        self.allocationReporter.report(True);
+        self.asyncReporter.report(True);
+
+        self.messageQueue.flush(True)
+
+
     def destroy(self):
         if not self.agent_started:
             self.log('Agent has not been started')
@@ -154,10 +326,15 @@ class Agent:
         self.allocation_reporter.stop()
         self.block_reporter.stop()
         self.error_reporter.stop()
+        self.span_reporter.stop()
         self.process_reporter.stop()
 
         self.cpu_reporter.destroy()
+        self.allocation_reporter.destroy()
         self.block_reporter.destroy()
+        self.error_reporter.destroy()
+        self.span_reporter.destroy()
+        self.process_reporter.destroy()
 
         self.agent_destroyed = True
         self.log('Agent destroyed')
@@ -186,10 +363,10 @@ class Agent:
             traceback.print_exc()
 
 
-    def delay(self, timeout, func):
+    def delay(self, timeout, func, *args):
         def func_wrapper():
             try:
-                func()
+                func(*args)
             except Exception:
                 self.exception()
 
@@ -199,14 +376,14 @@ class Agent:
         return t
 
 
-    def schedule(self, timeout, interval, func):
+    def schedule(self, timeout, interval, func, *args):
         tw = TimerWraper()
 
         def func_wrapper():
             start = time.time()
 
             try:
-                func()
+                func(*args)
             except Exception:
                 self.exception()
 

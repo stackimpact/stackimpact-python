@@ -17,6 +17,7 @@ class Metric:
     CATEGORY_MEMORY = 'memory'
     CATEGORY_GC = 'gc'
     CATEGORY_RUNTIME = 'runtime'
+    CATEGORY_SPAN = 'span'
     CATEGORY_CPU_PROFILE = 'cpu-profile'
     CATEGORY_MEMORY_PROFILE = 'memory-profile'
     CATEGORY_BLOCK_PROFILE = 'block-profile'
@@ -46,7 +47,7 @@ class Metric:
     UNIT_PERCENT = 'percent'
 
     TRIGGER_TIMER = 'timer'
-    TRIGGER_ANOMALY = 'anomaly'
+    TRIGGER_API = 'api'
 
 
     def __init__(self, agent, typ, category, name, unit):

@@ -1,14 +1,21 @@
 from .api_request import APIRequest
+from .utils import timestamp
 
 
 class ConfigLoader:
+    LOAD_DELAY = 2
+    LOAD_INTERVAL = 120
+
+
     def __init__(self, agent):
         self.agent = agent
         self.load_timer = None
+        self.last_load_ts = 0
 
 
     def start(self):
-        self.load_timer = self.agent.schedule(2, 120, self.load)
+        if self.agent.get_option('auto_profiling'):
+            self.load_timer = self.agent.schedule(self.LOAD_DELAY, self.LOAD_INTERVAL, self.load)
 
 
     def stop(self):
@@ -17,7 +24,14 @@ class ConfigLoader:
             self.load_timer = None
 
 
-    def load(self):
+    def load(self, with_interval = False):
+        now = timestamp()
+        if with_interval and self.last_load_ts > now - self.LOAD_INTERVAL:
+            return
+    
+        self.last_load_ts = now;
+
+
         try:
             api_request = APIRequest(self.agent)
             config = api_request.post('config', {})
@@ -46,10 +60,12 @@ class ConfigLoader:
 
             if self.agent.config.is_agent_enabled():        
                 self.agent.error_reporter.start()
+                self.agent.span_reporter.start()
                 self.agent.process_reporter.start()
                 self.agent.log('Agent activated')
             else:
                 self.agent.error_reporter.stop()
+                self.agent.span_reporter.stop()
                 self.agent.process_reporter.stop()
                 self.agent.log('Agent deactivated')
 

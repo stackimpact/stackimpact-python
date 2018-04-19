@@ -8,8 +8,8 @@ StackImpact is a production-grade performance profiler built for both
 production and development environments. It gives developers continuous
 and historical code-level view of application performance that is
 essential for locating CPU, memory allocation and I/O hot spots as well
-as latency bottlenecks. Included runtime metric and error monitoring
-complements profiles for extensive performance analysis. Learn more at
+as latency bottlenecks. Included runtime metrics and error monitoring
+complement profiles for extensive performance analysis. Learn more at
 `stackimpact.com <https://stackimpact.com/>`__.
 
 .. figure:: https://stackimpact.com/img/readme/hotspots-cpu-1.4-python.png
@@ -113,6 +113,10 @@ All initialization options:
    different environments.
 -  ``host_name`` (Optional) By default, host name will be the OS
    hostname.
+-  ``auto_profiling`` (Optional) If set to ``False``, disables automatic
+   profiling and reporting. Programmatic or manual profiling should be
+   used instead. Useful for environments without support for timers or
+   background tasks.
 -  ``debug`` (Optional) Enables debug logging.
 -  ``cpu_profiler_disabled``, ``allocation_profiler_disabled``,
    ``block_profiler_disabled``, ``error_profiler_disabled`` (Optional)
@@ -122,6 +126,71 @@ All initialization options:
 -  ``auto_destroy`` (Optional) Set to ``False`` to disable agent's exit
    handlers. If necessary, call ``destroy()`` to gracefully shutdown the
    agent.
+
+Programmatic profiling
+^^^^^^^^^^^^^^^^^^^^^^
+
+Use ``agent.profile(name)`` to instruct the agent when to start and stop
+profiling. The agent decides if and which profiler is activated.
+Normally, this method should be used in repeating code, such as request
+or event handlers. In addition to more precise profiling, timing
+information will also be reported for the profiled spans. Usage example:
+
+.. code:: python
+
+    span = agent.profile('span1');
+
+    # your code here
+
+    span.stop();
+
+Alternatively, a ``with`` statement can be used:
+
+.. code:: python
+
+    with agent.profile('span1'):
+        # your code ehere
+
+Manual profiling
+^^^^^^^^^^^^^^^^
+
+*Manual profiling should not be used in production!*
+
+By default, the agent starts and stops profiling automatically. Manual
+profiling allows to start and stop profilers directly. It is suitable
+for profiling short-lived programs and should not be used for
+long-running production applications. Automatic profiling should be
+disabled with ``auto_profiling: False``.
+
+.. code:: python
+
+    # Start CPU profiler.
+    agent.start_cpu_profiler();
+
+.. code:: python
+
+    # Stop CPU profiler and report the recorded profile to the Dashboard.
+    agent.stop_cpu_profiler();
+
+.. code:: python
+
+    # Start blocking call profiler.
+    agent.start_block_profiler();
+
+.. code:: python
+
+    # Stop blocking call profiler and report the recorded profile to the Dashboard.
+    agent.stop_block_profiler();
+
+.. code:: python
+
+    # Start heap allocation profiler.
+    agent.start_allocation_profiler();
+
+.. code:: python
+
+    # Stop heap allocation profiler and report the recorded profile to the Dashboard.
+    agent.stop_allocation_profiler();
 
 Analyzing performance data in the Dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

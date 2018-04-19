@@ -79,11 +79,68 @@ All initialization options:
 * `app_version` (Optional) Sets application version, which can be used to associate profiling information with the source code release.
 * `app_environment` (Optional) Used to differentiate applications in different environments.
 * `host_name` (Optional) By default, host name will be the OS hostname.
+* `auto_profiling` (Optional) If set to `False`, disables automatic profiling and reporting. Programmatic or manual profiling should be used instead. Useful for environments without support for timers or background tasks.
 * `debug` (Optional) Enables debug logging.
 * `cpu_profiler_disabled`, `allocation_profiler_disabled`, `block_profiler_disabled`, `error_profiler_disabled` (Optional) Disables respective profiler when `True`.
 * `include_agent_frames` (Optional) Set to `True` to not exclude agent stack frames from profile call graphs.
 * `auto_destroy` (Optional) Set to `False` to disable agent's exit handlers. If necessary, call `destroy()` to gracefully shutdown the agent.
 
+
+#### Programmatic profiling
+
+Use `agent.profile(name)` to instruct the agent when to start and stop profiling. The agent decides if and which profiler is activated. Normally, this method should be used in repeating code, such as request or event handlers. In addition to more precise profiling, timing information will also be reported for the profiled spans. Usage example:
+
+```python
+span = agent.profile('span1');
+
+# your code here
+
+span.stop();
+```
+
+Alternatively, a `with` statement can be used:
+
+```python
+with agent.profile('span1'):
+	# your code ehere
+```
+
+
+#### Manual profiling
+
+*Manual profiling should not be used in production!*
+
+By default, the agent starts and stops profiling automatically. Manual profiling allows to start and stop profilers directly. It is suitable for profiling short-lived programs and should not be used for long-running production applications. Automatic profiling should be disabled with `auto_profiling: False`.
+
+```python
+# Start CPU profiler.
+agent.start_cpu_profiler();
+```
+
+```python
+# Stop CPU profiler and report the recorded profile to the Dashboard.
+agent.stop_cpu_profiler();
+```
+
+```python
+# Start blocking call profiler.
+agent.start_block_profiler();
+```
+
+```python
+# Stop blocking call profiler and report the recorded profile to the Dashboard.
+agent.stop_block_profiler();
+```
+
+```python
+# Start heap allocation profiler.
+agent.start_allocation_profiler();
+```
+
+```python
+# Stop heap allocation profiler and report the recorded profile to the Dashboard.
+agent.stop_allocation_profiler();
+```
 
 
 #### Analyzing performance data in the Dashboard

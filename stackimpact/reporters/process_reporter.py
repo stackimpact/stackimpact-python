@@ -19,7 +19,22 @@ class ProcessReporter:
         self.report_timer = None
 
 
+    def setup(self):
+        pass
+
+
+    def destroy(self):
+        pass
+
+
+    def reset(self):
+        pass
+
+
     def start(self):
+        if not self.agent.get_option('auto_profiling'):
+            return
+
         if self.started:
             return
         self.started = True

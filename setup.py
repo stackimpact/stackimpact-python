@@ -1,9 +1,14 @@
+import os
 from setuptools import setup, find_packages
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name = 'stackimpact',
-    version = '1.1.5',
-    description = 'StackImpact Python Agent',
+    version = '1.2.2',
+    description = 'StackImpact Python Profiler',
+    long_description = read('README.rst'),
     author = 'StackImpact',
     author_email = 'devops@stackimpact.com',
     url = 'https://stackimpact.com',

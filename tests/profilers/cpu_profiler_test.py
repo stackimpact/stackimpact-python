@@ -10,7 +10,7 @@ import stackimpact
 from stackimpact.runtime import runtime_info
 
 
-class CPUReporterTestCase(unittest.TestCase):
+class CPUProfilerTestCase(unittest.TestCase):
 
     def test_record_profile(self):
         if runtime_info.OS_WIN:
@@ -21,12 +21,17 @@ class CPUReporterTestCase(unittest.TestCase):
             dashboard_address = 'http://localhost:5001',
             agent_key = 'key1',
             app_name = 'TestPythonApp',
+            auto_profiling = False,
             debug = True
         )
-        agent.cpu_reporter.start()
+
+        agent.cpu_reporter.profiler.reset()
 
         def record():
-            agent.cpu_reporter.record(2)
+            agent.cpu_reporter.profiler.start_profiler()
+            time.sleep(2)
+            agent.cpu_reporter.profiler.stop_profiler()
+
 
         record_t = threading.Thread(target=record)
         record_t.start()
@@ -39,9 +44,10 @@ class CPUReporterTestCase(unittest.TestCase):
 
         record_t.join()
 
-        #print(agent.cpu_reporter.profile)
+        profile = agent.cpu_reporter.profiler.build_profile(2)[0]['profile'].to_dict()
+        #print(profile)
     
-        self.assertTrue('cpu_work_main_thread' in str(agent.cpu_reporter.profile))
+        self.assertTrue('cpu_work_main_thread' in str(profile))
 
         agent.destroy()
 
