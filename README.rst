@@ -114,8 +114,8 @@ All initialization options:
 -  ``host_name`` (Optional) By default, host name will be the OS
    hostname.
 -  ``auto_profiling`` (Optional) If set to ``False``, disables automatic
-   profiling and reporting. Programmatic or manual profiling should be
-   used instead. Useful for environments without support for timers or
+   profiling and reporting. Focused or manual profiling should be used
+   instead. Useful for environments without support for timers or
    background tasks.
 -  ``debug`` (Optional) Enables debug logging.
 -  ``cpu_profiler_disabled``, ``allocation_profiler_disabled``,
@@ -127,8 +127,8 @@ All initialization options:
    handlers. If necessary, call ``destroy()`` to gracefully shutdown the
    agent.
 
-Programmatic profiling
-^^^^^^^^^^^^^^^^^^^^^^
+Focused profiling
+^^^^^^^^^^^^^^^^^
 
 Use ``agent.profile(name)`` to instruct the agent when to start and stop
 profiling. The agent decides if and which profiler is activated.
