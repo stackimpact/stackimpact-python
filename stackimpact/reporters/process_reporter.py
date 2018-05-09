@@ -10,7 +10,7 @@ import multiprocessing
 from ..runtime import runtime_info, min_version, read_cpu_time, read_max_rss, read_current_rss, read_vm_size
 from ..metric import Metric
 
-class ProcessReporter:
+class ProcessReporter(object):
 
     def __init__(self, agent):
         self.agent = agent

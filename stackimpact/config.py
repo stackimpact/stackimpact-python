@@ -1,6 +1,6 @@
 import threading
 
-class Config:
+class Config(object):
     def __init__(self, agent):
         self.agent = agent
         self.agent_enabled = False

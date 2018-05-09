@@ -13,3 +13,4 @@ tmp
 dist
 stackimpact.egg-info
 __pycache__
+venv*

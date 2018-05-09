@@ -14,7 +14,7 @@ from ..frame import Frame
 
 
 
-class CPUProfiler:
+class CPUProfiler(object):
     SAMPLING_RATE = 0.01
     MAX_TRACEBACK_SIZE = 25 # number of frames
 
@@ -56,7 +56,7 @@ class CPUProfiler:
 
 
     def reset(self):
-        self.profile = Breakdown('root')
+        self.profile = Breakdown('Execution call graph', Breakdown.TYPE_CALLGRAPH)
 
 
     def start_profiler(self):
@@ -133,5 +133,6 @@ class CPUProfiler:
 
         for frame in reversed(stack):
             current_node = current_node.find_or_add_child(str(frame))
+            current_node.set_type(Breakdown.TYPE_CALLSITE)
         
         current_node.increment(0, 1)

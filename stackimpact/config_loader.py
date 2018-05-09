@@ -2,7 +2,7 @@ from .api_request import APIRequest
 from .utils import timestamp
 
 
-class ConfigLoader:
+class ConfigLoader(object):
     LOAD_DELAY = 2
     LOAD_INTERVAL = 120
 
@@ -24,7 +24,7 @@ class ConfigLoader:
             self.load_timer = None
 
 
-    def load(self, with_interval = False):
+    def load(self, with_interval=False):
         now = timestamp()
         if with_interval and self.last_load_ts > now - self.LOAD_INTERVAL:
             return
@@ -53,10 +53,12 @@ class ConfigLoader:
                 self.agent.cpu_reporter.start()
                 self.agent.allocation_reporter.start()
                 self.agent.block_reporter.start()
+                self.agent.tf_reporter.start()
             else:
                 self.agent.cpu_reporter.stop()
                 self.agent.allocation_reporter.stop()
                 self.agent.block_reporter.stop()
+                self.agent.tf_reporter.stop()
 
             if self.agent.config.is_agent_enabled():        
                 self.agent.error_reporter.start()

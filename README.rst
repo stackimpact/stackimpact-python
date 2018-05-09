@@ -20,8 +20,9 @@ complement profiles for extensive performance analysis. Learn more at
 Features
 ^^^^^^^^
 
--  Continuous hot spot profiling for CPU usage, memory allocation,
+-  Continuous hot spot profiling of CPU usage, memory allocation and
    blocking calls.
+-  TensorFlow profiling.
 -  Error and exception monitoring.
 -  Health monitoring including CPU, memory, garbage collection and other
    runtime metrics.
@@ -191,6 +192,16 @@ disabled with ``auto_profiling: False``.
 
     # Stop heap allocation profiler and report the recorded profile to the Dashboard.
     agent.stop_allocation_profiler();
+
+.. code:: python
+
+    # Start TensorFlow profiler.
+    agent.start_tf_profiler();
+
+.. code:: python
+
+    # Stop TensorFlow profiler and report the recorded profile to the Dashboard.
+    agent.stop_tf_profiler();
 
 Analyzing performance data in the Dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -27,7 +27,7 @@ def generate_uuid():
 
 
 def generate_sha1(text):
-    h = hashlib.sha1()
-    h.update(text.encode('utf-8'))
-    return h.hexdigest()
+    sha1_hash = hashlib.sha1()
+    sha1_hash.update(text.encode('utf-8'))
+    return sha1_hash.hexdigest()
 

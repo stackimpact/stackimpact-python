@@ -20,7 +20,7 @@ else:
     from urllib.parse import urlencode
 
 
-class APIRequest:
+class APIRequest(object):
     def __init__(self, agent):
         self.agent = agent   
 
@@ -42,11 +42,12 @@ class APIRequest:
         req_body = {
             'runtime_type':    'python',
             'runtime_version': '{0.major}.{0.minor}.{0.micro}'.format(sys.version_info),
+            'runtime_path':    sys.prefix,
             'agent_version':   self.agent.AGENT_VERSION,
             'app_name':        self.agent.get_option('app_name'),
             'app_version':     self.agent.get_option('app_version'),
             'app_environment': self.agent.get_option('app_environment'),
-            'host_name':       self.agent.get_option('host_name', socket.gethostname()),
+            'host_name':       self.agent.get_option('host_name', host_name),
             'process_id':      os.getpid(),
             'run_id':          self.agent.run_id,
             'run_ts':          self.agent.run_ts,
@@ -55,9 +56,9 @@ class APIRequest:
         }
 
         gzip_out = BytesIO()
-        with gzip.GzipFile(fileobj=gzip_out, mode="w") as f:
-          f.write(json.dumps(req_body).encode('utf-8'))
-          f.close()
+        with gzip.GzipFile(fileobj=gzip_out, mode="w") as out_file:
+          out_file.write(json.dumps(req_body).encode('utf-8'))
+          out_file.close()
 
         gzip_out_val = gzip_out.getvalue()
         if isinstance(gzip_out_val, str):

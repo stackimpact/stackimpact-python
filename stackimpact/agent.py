@@ -26,9 +26,10 @@ from .reporters.span_reporter import SpanReporter
 from .profilers.cpu_profiler import CPUProfiler
 from .profilers.allocation_profiler import AllocationProfiler
 from .profilers.block_profiler import BlockProfiler
+from .profilers.tf_profiler import TFProfiler
 
 
-class Span:
+class Span(object):
 
     def __init__(self, stop_func = None):
         if stop_func:
@@ -48,9 +49,9 @@ class Span:
         self.stop()
 
 
-class Agent:
+class Agent(object):
 
-    AGENT_VERSION = "1.2.2"
+    AGENT_VERSION = "1.2.3"
     SAAS_DASHBOARD_ADDRESS = "https://agent-api.stackimpact.com"
 
     def __init__(self, **kwargs):
@@ -99,11 +100,19 @@ class Agent:
         config.report_interval = 120
         self.block_reporter = ProfileReporter(self, BlockProfiler(self), config)
 
+        config = ProfilerConfig()
+        config.log_prefix = 'TensorFlow profiler'
+        config.max_profile_duration = 20
+        config.max_span_duration = 5
+        config.max_span_count = 30
+        config.span_interval = 20
+        config.report_interval = 120
+        self.tf_reporter = ProfileReporter(self, TFProfiler(self), config)
 
         self.options = None
 
 
-    def get_option(self, name, default_val = None):
+    def get_option(self, name, default_val=None):
         if name not in self.options:
             return default_val
         else:
@@ -151,6 +160,7 @@ class Agent:
         self.cpu_reporter.setup()
         self.allocation_reporter.setup()
         self.block_reporter.setup()
+        self.tf_reporter.setup()
         self.span_reporter.setup()
         self.error_reporter.setup()
         self.process_reporter.setup()
@@ -201,6 +211,7 @@ class Agent:
             self.cpu_reporter.start()
             self.allocation_reporter.start()
             self.block_reporter.start()
+            self.tf_reporter.start()
             self.span_reporter.start()
             self.error_reporter.start()
             self.process_reporter.start()
@@ -212,13 +223,14 @@ class Agent:
             self.cpu_reporter.stop()
             self.allocation_reporter.stop()
             self.block_reporter.stop()
+            self.tf_reporter.stop()
             self.span_reporter.stop()
             self.error_reporter.stop()
             self.process_reporter.stop()
             self.config.set_agent_enabled(False)
 
 
-    def profile(self, name = 'Default'):
+    def profile(self, name='Default'):
         if not self.agent_started or self.span_active:
           return Span(None)
 
@@ -232,19 +244,21 @@ class Agent:
             active_reporters.append(self.allocation_reporter)
         if self.block_reporter.started:
             active_reporters.append(self.block_reporter)
+        if self.tf_reporter.started:
+            active_reporters.append(self.tf_reporter)
 
         if len(active_reporters) > 0:
             selected_reporter = active_reporters[int(math.floor(random.random() * len(active_reporters)))]
             if not selected_reporter.start_profiling(True, True):
                 selected_reporter = None
 
-        start_timestamp = timestamp()
+        start_timestamp = time.time()
 
         def stop_func():
             if selected_reporter:
                 selected_reporter.stop_profiling()
 
-            duration = timestamp() - start_timestamp
+            duration = time.time() - start_timestamp
             self.span_reporter.record_span(name, duration)
 
             self.span_active = False
@@ -298,15 +312,24 @@ class Agent:
         self._stop_profiler(self.block_reporter)
 
 
+    def start_tf_profiler(self):
+        self._start_profiler(self.tf_reporter)
+
+
+    def stop_tf_profiler(self):
+        self._stop_profiler(self.tf_reporter)
+
+
     def report(self):
         if not self.agent_started or self.get_option('auto_profiling'):
             return
 
-        self.configLoader.load(True)
+        self.config_loader.load(True)
 
-        self.cpuReporter.report(True);
-        self.allocationReporter.report(True);
-        self.asyncReporter.report(True);
+        self.cpu_reporter.report(True);
+        self.allocation_reporter.report(True);
+        self.block_reporter.report(True);
+        self.tf_reporter.report(True);
 
         self.messageQueue.flush(True)
 
@@ -325,6 +348,7 @@ class Agent:
         self.cpu_reporter.stop()
         self.allocation_reporter.stop()
         self.block_reporter.stop()
+        self.tf_reporter.stop()
         self.error_reporter.stop()
         self.span_reporter.stop()
         self.process_reporter.stop()
@@ -332,6 +356,7 @@ class Agent:
         self.cpu_reporter.destroy()
         self.allocation_reporter.destroy()
         self.block_reporter.destroy()
+        self.tf_reporter.destroy()
         self.error_reporter.destroy()
         self.span_reporter.destroy()
         self.process_reporter.destroy()
@@ -421,7 +446,7 @@ class Agent:
 
 
 
-class TimerWraper():
+class TimerWraper(object):
     def __init__(self):
         self.timer = None
         self.cancel_lock = threading.Lock()

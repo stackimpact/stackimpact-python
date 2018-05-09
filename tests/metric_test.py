@@ -33,7 +33,7 @@ class MetricTestCase(unittest.TestCase):
 
 
 
-    def test_breakdown_filter(self):
+    def test_profile_filter(self):
         root = Breakdown('root')
         root.measurement = 10
 
@@ -56,7 +56,7 @@ class MetricTestCase(unittest.TestCase):
         self.assertFalse(child2.find_child('child2child1'))
 
 
-    def test_breakdown_depth(self):
+    def test_profile_depth(self):
         root = Breakdown("root")
 
         child1 = Breakdown("child1")
@@ -73,7 +73,7 @@ class MetricTestCase(unittest.TestCase):
         self.assertEqual(child2.depth(), 2)
 
 
-    def test_breakdown_p95(self):
+    def test_profile_p95(self):
         root = Breakdown("root")
 
         child1 = Breakdown("child1")
@@ -94,7 +94,7 @@ class MetricTestCase(unittest.TestCase):
         self.assertEqual(root.measurement, 6.5)
 
 
-    def test_breakdown_p95_big(self):
+    def test_profile_p95_big(self):
         root = Breakdown("root")
 
         for i in range(0, 10000):

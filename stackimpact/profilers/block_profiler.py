@@ -16,7 +16,7 @@ if runtime_info.GEVENT:
     import gevent
 
 
-class BlockProfiler:
+class BlockProfiler(object):
     SAMPLING_RATE = 0.05
     MAX_TRACEBACK_SIZE = 25 # number of frames
 
@@ -73,7 +73,7 @@ class BlockProfiler:
 
 
     def reset(self):
-        self.profile = Breakdown('root')
+        self.profile = Breakdown('Execution call graph', Breakdown.TYPE_CALLGRAPH)
 
 
     def start_profiler(self):
@@ -99,7 +99,7 @@ class BlockProfiler:
                 'category': Metric.CATEGORY_BLOCK_PROFILE,
                 'name': Metric.NAME_BLOCKING_CALL_TIMES,
                 'unit': Metric.UNIT_MILLISECOND,
-                'unit_interval': None,
+                'unit_interval': 1,
                 'profile': self.profile
             }]
 
@@ -119,14 +119,13 @@ class BlockProfiler:
                     current_node = self.profile
                     for frame in reversed(stack):
                         current_node = current_node.find_or_add_child(str(frame))
+                        current_node.set_type(Breakdown.TYPE_CALLSITE)
                     current_node.increment(sample_time, 1)
 
                 thread_id, thread_frame, stack = None, None, None
 
             items = None
             current_frames = None
-
-            self.profile._overhead += (time.clock() - start)
 
 
     def recover_stack(self, thread_frame):

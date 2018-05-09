@@ -14,7 +14,7 @@ from ..metric import Breakdown
 from ..frame import Frame
 
 
-class ProfilerConfig:
+class ProfilerConfig(object):
 
     def __init__(self):
       self.log_prefix = None
@@ -161,7 +161,7 @@ class ProfileReporter:
         self.agent.log(self.config.log_prefix + ': stopped.')
 
 
-    def report(self, with_interval = False):
+    def report(self, with_interval=False):
         if not self.started:
           return
 

@@ -6,7 +6,7 @@ import math
 
 from .utils import timestamp, generate_uuid, generate_sha1
 
-class Metric:
+class Metric(object):
 
     TYPE_STATE = 'state'
     TYPE_COUNTER = 'counter'
@@ -37,7 +37,9 @@ class Metric:
     NAME_UNCOLLECTED_ALLOCATIONS = 'Uncollected allocations'
     NAME_BLOCKING_CALL_TIMES = 'Blocking call times'
     NAME_HANDLED_EXCEPTIONS = 'Handled exceptions'
-
+    NAME_TF_OPERATION_TIMES = 'TensorFlow operation times'
+    NAME_TF_OPERATION_ALLOCATION_RATE = 'TensorFlow operation allocation rate'
+    
     UNIT_NONE = ''
     UNIT_MILLISECOND = 'millisecond'
     UNIT_MICROSECOND = 'microsecond'
@@ -141,15 +143,37 @@ class Measurement:
 
 class Breakdown:
 
+    TYPE_CALLGRAPH = 'callgraph'
+    TYPE_DEVICE = 'device'
+    TYPE_CALLSITE = 'callsite'
+    TYPE_OPERATION = 'operation'
+    TYPE_ERROR = 'error'
+
     RESERVOIR_SIZE = 1000
 
-    def __init__(self, name):
+    def __init__(self, name, typ = None):
         self.name = name
+        self.type = typ
+        self.metadata = dict()
+        self.children = dict()
         self.measurement = 0
         self.num_samples = 0
         self.reservoir = []
-        self.children = {}
-        self._overhead = 0
+
+
+    def set_type(self, typ):
+        self.type = typ
+
+
+    def add_metadata(self, key, value):
+        self.metadata[key] = value
+
+
+    def get_metadata(self, key):
+        if key in self.metadata:
+            return self.metadata[key]
+        else:
+            return None
 
 
     def find_child(self, name):
@@ -160,21 +184,21 @@ class Breakdown:
 
 
     def max_child(self):
-        max = None
+        max_ch = None
         for name, child in self.children.items():
-            if max == None or child.measurement > max.measurement:
-                max = child
+            if max_ch is None or child.measurement > max_ch.measurement:
+                max_ch = child
 
-        return max
+        return max_ch
 
 
     def min_child(self):
-        min = None
+        min_ch = None
         for name, child in self.children.items():
-            if min == None or child.measurement < min.measurement:
-                min = child
+            if min_ch == None or child.measurement < min_ch.measurement:
+                min_ch = child
         
-        return min
+        return min_ch
 
 
     def add_child(self, child):
@@ -194,28 +218,28 @@ class Breakdown:
         return child
 
 
-    def filter(self, from_level, min, max):
-        self.filter_level(1, from_level, min,  max)
+    def filter(self, from_level, min_measurement, max_measurement):
+        self.filter_level(1, from_level, min_measurement,  max_measurement)
 
 
-    def filter_level(self, current_level, from_level, min, max):
+    def filter_level(self, current_level, from_level, min_measurement, max_measurement):
         for name in list(self.children.keys()):
             child = self.children[name]
-            if current_level >= from_level and (child.measurement < min or child.measurement > max):
+            if current_level >= from_level and (child.measurement < min_measurement or child.measurement > max_measurement):
                 del self.children[name]
             else:
-                child.filter_level(current_level + 1, from_level, min, max)
+                child.filter_level(current_level + 1, from_level, min_measurement, max_measurement)
 
 
     def depth(self):
-        max = 0
+        max_depth = 0
         
         for name, child in self.children.items():
-            d = child.depth()
-            if d > max:
-                max = d
+            child_depth = child.depth()
+            if child_depth > max_depth:
+                max_depth = child_depth
 
-        return max + 1
+        return max_depth + 1
 
 
     def propagate(self):
@@ -284,6 +308,14 @@ class Breakdown:
             child.normalize(factor)
 
 
+    def scale(self, factor):
+        self.measurement = self.measurement * factor
+        self.num_samples = int(math.ceil(self.num_samples * factor))
+
+        for name, child in self.children.items():
+            child.scale(factor)
+
+
     def round(self):
         self.measurement = round(self.measurement)
 
@@ -305,6 +337,7 @@ class Breakdown:
 
         node_map = {
             "name": self.name,
+            "metadata": self.metadata,
             "measurement": self.measurement,
             "num_samples": self.num_samples,
             "children": children_map,
@@ -318,13 +351,13 @@ class Breakdown:
 
 
     def dump_level(self, level):
-        s = ''
+        dump_str = ''
 
         for i in range(0, level):
-            s += ' '
+            dump_str += ' '
 
-        s += '{0} - {1} ({2})\n'.format(self.name, self.measurement, self.num_samples)
+        dump_str += '{0} - {1} ({2})\n'.format(self.name, self.measurement, self.num_samples)
         for name, child in self.children.items():
-            s += child.dump_level(level + 1)
+            dump_str += child.dump_level(level + 1)
         
-        return s
+        return dump_str

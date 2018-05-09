@@ -9,7 +9,7 @@ from .runtime import runtime_info
 if runtime_info.GEVENT:
     import gevent
 
-class FrameCache:
+class FrameCache(object):
     MAX_CACHE_SIZE = 2500
 
     def __init__(self, agent):

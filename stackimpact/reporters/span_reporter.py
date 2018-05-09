@@ -10,7 +10,8 @@ from ..metric import Breakdown
 from ..frame import Frame
 
 
-class SpanReporter:
+class SpanReporter(object):
+
     MAX_QUEUED_EXC = 100
 
 

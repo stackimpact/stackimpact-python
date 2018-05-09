@@ -11,7 +11,7 @@ except ImportError:
     pass
 
 
-class runtime_info:
+class runtime_info(object):
     OS_LINUX = (sys.platform.startswith('linux'))
     OS_DARWIN = (sys.platform == 'darwin')
     OS_WIN = (sys.platform == 'win32')
@@ -27,11 +27,11 @@ except ImportError:
     pass
 
 
-VmRSSRe = re.compile('VmRSS:\s+(\d+)\s+kB')
-VmSizeRe = re.compile('VmSize:\s+(\d+)\s+kB')
+VM_RSS_REGEXP = re.compile('VmRSS:\s+(\d+)\s+kB')
+VM_SIZE_REGEXP = re.compile('VmSize:\s+(\d+)\s+kB')
 
 
-def min_version(major, minor = 0):
+def min_version(major, minor=0):
     return (sys.version_info.major == major and sys.version_info.minor >= minor)
 
 
@@ -60,9 +60,9 @@ def read_current_rss():
     except Exception:
         return None
 
-    m = VmRSSRe.search(output)
-    if m:
-        return int(float(m.group(1)))
+    match = VM_RSS_REGEXP.search(output)
+    if match:
+        return int(float(match.group(1)))
 
     return None
 
@@ -78,37 +78,41 @@ def read_vm_size():
     except Exception:
         return None
 
-    m = VmSizeRe.search(output)
-    if m:
-        return int(float(m.group(1)))
+    match = VM_SIZE_REGEXP.search(output)
+    if match:
+        return int(float(match.group(1)))
 
     return None
 
 
 def patch(obj, func_name, before_func, after_func):
     if not hasattr(obj, func_name):
-        return
+        return False
     
     target_func = getattr(obj, func_name)
 
     # already patched
     if hasattr(target_func, '__stackimpact_orig__'):
-        return
+        return True
 
     @wraps(target_func)
-    def wrapper(*args, **kwds):
-        if before_func:
-            before_func(*args, **kwds)
+    def wrapper(*args, **kwargs):
+        data = None
 
-        ret = target_func(*args, **kwds)
+        if before_func:
+            args, kwargs, data = before_func(args, kwargs)
+
+        ret = target_func(*args, **kwargs)
 
         if after_func:
-            after_func(ret)
+            after_func(args, kwargs, ret, data)
 
         return ret
 
     wrapper.__orig__ = target_func
     setattr(obj, func_name, wrapper)
+
+    return True
 
 
 def unpatch(obj, func_name):
@@ -122,7 +126,7 @@ def unpatch(obj, func_name):
     setattr(obj, func_name, getattr(wrapper, '__stackimpact_orig__'))
 
 
-def register_signal(signal_number, handler_func, once = False):
+def register_signal(signal_number, handler_func, once=False):
     prev_handler = None
 
     def _handler(signum, frame):

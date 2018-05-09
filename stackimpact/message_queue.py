@@ -6,7 +6,7 @@ from .api_request import APIRequest
 from .utils import timestamp, base64_encode
 
 
-class MessageQueue:
+class MessageQueue(object):
     FLUSH_INTERVAL = 5;
     MESSAGE_TTL = 10 * 60
 
@@ -32,20 +32,20 @@ class MessageQueue:
             
 
     def add(self, topic, message):
-        m = {
+        entry = {
             'topic': topic,
             'content': message,
             'added_at': timestamp()
         }
 
         with self.queue_lock:
-            self.queue.append(m)
+            self.queue.append(entry)
 
         self.agent.log('Added message to the queue for topic: ' + topic)
         self.agent.log(message)
 
 
-    def flush(self, with_interval = False):
+    def flush(self, with_interval=False):
         if len(self.queue) == 0:
             return
 

@@ -10,13 +10,13 @@ from ..metric import Breakdown
 from ..frame import Frame
 
 
-class ErrorReporter:
+class ErrorReporter(object):
     MAX_QUEUED_EXC = 100
 
 
     def __init__(self, agent):
         self.agent = agent
-        self.setup_done = False
+        self.ready = False
         self.started = False
         self.process_timer = None
         self.report_timer = None
@@ -30,7 +30,7 @@ class ErrorReporter:
         if self.agent.get_option('error_profiler_disabled'):
             return
 
-        def _exc_info(ret):
+        def _exc_info(args, kwargs, ret, data):
             try:
                 if not self.agent.agent_started or self.agent.agent_destroyed:
                     return
@@ -43,11 +43,11 @@ class ErrorReporter:
 
         patch(sys, 'exc_info', None, _exc_info)
 
-        self.setup_done = True
+        self.ready = True
 
 
     def destroy(self):
-        if not self.setup_done:
+        if not self.ready:
             return
 
         unpatch(sys, 'exc_info')
@@ -55,7 +55,7 @@ class ErrorReporter:
 
     def reset(self):
         with self.profile_lock:
-            self.profile = Breakdown('root')
+            self.profile = Breakdown('Error call graph', Breakdown.TYPE_ERROR)
             self.added_exceptions = {}
 
 
@@ -91,6 +91,8 @@ class ErrorReporter:
 
     def report(self):
         with self.profile_lock:
+            self.profile.propagate()
+
             metric = Metric(self.agent, Metric.TYPE_PROFILE, Metric.CATEGORY_ERROR_PROFILE, Metric.NAME_HANDLED_EXCEPTIONS, Metric.UNIT_NONE)
             measurement = metric.create_measurement(Metric.TRIGGER_TIMER, self.profile.measurement, 60, self.profile)
             self.agent.message_queue.add('metric', metric.to_dict())
@@ -146,12 +148,10 @@ class ErrorReporter:
                 return
 
             current_node = self.profile
-            current_node.increment(1, 0)
 
             for frame in reversed(stack):
                 current_node = current_node.find_or_add_child(str(frame))
-                current_node.increment(1, 0)
-
+                current_node.set_type(Breakdown.TYPE_CALLSITE)
 
             message = ''
             if exc_type:
@@ -171,4 +171,5 @@ class ErrorReporter:
                 else:
                     message_node = current_node.find_or_add_child('Other')
 
+            message_node.set_type(Breakdown.TYPE_ERROR)
             message_node.increment(1, 0)

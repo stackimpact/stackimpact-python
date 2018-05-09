@@ -14,7 +14,7 @@ if min_version(3, 4):
     import tracemalloc
 
 
-class AllocationProfiler:
+class AllocationProfiler(object):
     MAX_TRACEBACK_SIZE = 25 # number of frames
     MAX_MEMORY_OVERHEAD = 10 * 1e6 # 10MB
     MAX_PROFILED_ALLOCATIONS = 25
@@ -45,7 +45,7 @@ class AllocationProfiler:
 
 
     def reset(self):
-        self.profile = Breakdown('root')
+        self.profile = Breakdown('Allocation call graph', Breakdown.TYPE_CALLGRAPH)
 
 
     def start_profiler(self):
@@ -120,4 +120,5 @@ class AllocationProfiler:
 
                     frame_name = '{0}:{1}'.format(frame.filename, frame.lineno)
                     current_node = current_node.find_or_add_child(frame_name)
+                    current_node.set_type(Breakdown.TYPE_CALLSITE)
                 current_node.increment(stat.size, stat.count)
