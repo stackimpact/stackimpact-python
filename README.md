@@ -20,7 +20,7 @@ Learn more on the [features](https://stackimpact.com/features/) page (with scree
 
 #### How it works
 
-The StackImpact profiler agent is imported into a program and used as a normal package. When the program runs, various sampling profilers are started and stopped automatically by the agent and/or programmatically using the agent methods. The agent periodically reports recorded profiles and metrics to the StackImpact Dashboard. If an application has multiple processes, also referred to as workers, instances or nodes, only one or two processes will have active agents at any point of time.
+The StackImpact profiler agent is imported into a program and used as a normal package. When the program runs, various sampling profilers are started and stopped automatically by the agent and/or programmatically using the agent methods. The agent periodically reports recorded profiles and metrics to the StackImpact Dashboard. The agent can also operate in manual mode, which should be used in development only.
 
 
 #### Documentation
@@ -165,4 +165,4 @@ To enable debug logging, add `debug = True` to startup options. If the debug log
 
 ## Overhead
 
-The agent overhead is measured to be less than 1% for applications under high load. For applications that are horizontally scaled to multiple processes, StackImpact agents are only active on a small subset of the processes at any point of time, therefore the total overhead is much lower.
+The agent overhead is measured to be less than 1% for applications under high load.

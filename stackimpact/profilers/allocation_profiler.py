@@ -91,7 +91,7 @@ class AllocationProfiler(object):
                 'category': Metric.CATEGORY_MEMORY_PROFILE,
                 'name': Metric.NAME_UNCOLLECTED_ALLOCATIONS,
                 'unit': Metric.UNIT_BYTE,
-                'unit_interval': None,
+                'unit_interval': 1,
                 'profile': self.profile
             }]
 

@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = 'stackimpact',
-    version = '1.2.3',
+    version = '1.2.4',
     description = 'StackImpact Python Profiler',
     long_description = read('README.rst'),
     author = 'StackImpact',

@@ -50,7 +50,6 @@ class AgentTestCase(unittest.TestCase):
             dashboard_address = 'http://localhost:5001',
             agent_key = 'key1',
             app_name = 'TestPythonApp',
-            auto_profiling = False,
             debug = True
         )
 
@@ -77,7 +76,6 @@ class AgentTestCase(unittest.TestCase):
             dashboard_address = 'http://localhost:5001',
             agent_key = 'key1',
             app_name = 'TestPythonApp',
-            auto_profiling = False,
             debug = True
         )
 

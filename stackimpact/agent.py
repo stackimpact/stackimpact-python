@@ -51,7 +51,7 @@ class Span(object):
 
 class Agent(object):
 
-    AGENT_VERSION = "1.2.3"
+    AGENT_VERSION = "1.2.4"
     SAAS_DASHBOARD_ADDRESS = "https://agent-api.stackimpact.com"
 
     def __init__(self, **kwargs):
@@ -261,6 +261,12 @@ class Agent(object):
             duration = time.time() - start_timestamp
             self.span_reporter.record_span(name, duration)
 
+            if not self.get_option('auto_profiling'):
+                self.config_loader.load(True)
+                if selected_reporter:
+                    selected_reporter.report(True);
+                self.message_queue.flush(True)
+
             self.span_active = False
 
         return Span(stop_func)
@@ -318,20 +324,6 @@ class Agent(object):
 
     def stop_tf_profiler(self):
         self._stop_profiler(self.tf_reporter)
-
-
-    def report(self):
-        if not self.agent_started or self.get_option('auto_profiling'):
-            return
-
-        self.config_loader.load(True)
-
-        self.cpu_reporter.report(True);
-        self.allocation_reporter.report(True);
-        self.block_reporter.report(True);
-        self.tf_reporter.report(True);
-
-        self.messageQueue.flush(True)
 
 
     def destroy(self):
