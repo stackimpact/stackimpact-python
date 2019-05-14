@@ -13,4 +13,3 @@ for bundle in dist/*.tar.gz; do
 	echo "Publishing $bundle..."
 	twine upload $bundle
 done
-
