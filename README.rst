@@ -22,7 +22,6 @@ Features
 
 -  Continuous hot spot profiling of CPU usage, memory allocation and
    blocking calls.
--  TensorFlow profiling.
 -  Error and exception monitoring.
 -  Health monitoring including CPU, memory, garbage collection and other
    runtime metrics.
@@ -39,9 +38,8 @@ The StackImpact profiler agent is imported into a program and used as a
 normal package. When the program runs, various sampling profilers are
 started and stopped automatically by the agent and/or programmatically
 using the agent methods. The agent periodically reports recorded
-profiles and metrics to the StackImpact Dashboard. If an application has
-multiple processes, also referred to as workers, instances or nodes,
-only one or two processes will have active agents at any point of time.
+profiles and metrics to the StackImpact Dashboard. The agent can also
+operate in manual mode, which should be used in development only.
 
 Documentation
 ^^^^^^^^^^^^^
@@ -193,16 +191,6 @@ disabled with ``auto_profiling: False``.
     # Stop heap allocation profiler and report the recorded profile to the Dashboard.
     agent.stop_allocation_profiler();
 
-.. code:: python
-
-    # Start TensorFlow profiler.
-    agent.start_tf_profiler();
-
-.. code:: python
-
-    # Stop TensorFlow profiler and report the recorded profile to the Dashboard.
-    agent.stop_tf_profiler();
-
 Analyzing performance data in the Dashboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -222,7 +210,4 @@ Overhead
 --------
 
 The agent overhead is measured to be less than 1% for applications under
-high load. For applications that are horizontally scaled to multiple
-processes, StackImpact agents are only active on a small subset of the
-processes at any point of time, therefore the total overhead is much
-lower.
+high load.

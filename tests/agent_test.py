@@ -182,46 +182,7 @@ class AgentTestCase(unittest.TestCase):
         self.assertTrue('blocking_call' in str(messages))
 
         agent.destroy()
-
-
-
-
-    def test_tf_profile(self):
-        stackimpact._agent = None
-        agent = stackimpact.start(
-            dashboard_address = 'http://localhost:5001',
-            agent_key = 'key1',
-            app_name = 'TestPythonApp',
-            auto_profiling = False,
-            debug = True
-        )
-
-        if not agent.tf_reporter.profiler.ready:
-            return
-
-        messages = []
-        def add_mock(topic, message):
-            messages.append(message)
-        agent.message_queue.add = add_mock
-
-        agent.start_tf_profiler()
-
-        import tensorflow as tf
-
-        x = tf.random_normal([1000, 1000])
-        y = tf.random_normal([1000, 1000])
-        res = tf.matmul(x, y)
-
-        with tf.Session() as sess:
-            sess.run(res)
-
-        agent.stop_tf_profiler()
-
-        self.assertTrue('test_tf_profile' in str(messages))
-
-        agent.destroy()
-
-
+        
 
 if __name__ == '__main__':
     unittest.main()

@@ -9,7 +9,6 @@ StackImpact is a production-grade performance profiler built for both production
 #### Features
 
 * Continuous hot spot profiling of CPU usage, memory allocation and blocking calls.
-* TensorFlow profiling.
 * Error and exception monitoring.
 * Health monitoring including CPU, memory, garbage collection and other runtime metrics.
 * Alerts on profile anomalies.
@@ -141,16 +140,6 @@ agent.start_allocation_profiler();
 ```python
 # Stop heap allocation profiler and report the recorded profile to the Dashboard.
 agent.stop_allocation_profiler();
-```
-
-```python
-# Start TensorFlow profiler.
-agent.start_tf_profiler();
-```
-
-```python
-# Stop TensorFlow profiler and report the recorded profile to the Dashboard.
-agent.stop_tf_profiler();
 ```
 
 #### Analyzing performance data in the Dashboard
